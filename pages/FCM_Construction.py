@@ -1,0 +1,69 @@
+import streamlit as st
+
+import sys
+sys.path.insert(1, '../fcm_codes')
+sys.path.insert(1, '../app_components')
+from fcm_codes.fcm_simple import *
+from app_components.construct_component import *
+
+# General Page Configurations
+st.set_page_config(
+    page_title = 'FCM Construction',
+    page_icon="🛠",
+    layout = 'wide',
+    menu_items = {
+        "Get Help" : None, #todo insert the github link
+        "Report a Bug" : "mailto:tziolasphd@gmail.com", 
+        "About" : "This app was created by Dr. Theodoros Tziolas under the supervision of Prof. Elpiniki Papageorgiou. It aims to provide a usefull AI tool that utilizes Fuzzy Cognitive Maps and Deep Learning for decision making."
+        }
+        )
+
+st.sidebar.success("Select a tool above.")
+st.markdown(
+    '''
+    # FCM Construction 🛠
+
+    Construct an FCM either by **manually** defining the concepts and the weighted interconnections,
+    or **automatically** by uploading a weight matrix.
+
+    ***:rainbow[Otherwise check out the demo to get familiarized with FCM construction and inference!]***
+    '''
+    )
+
+tab_expert, tab_demo = st.tabs(['Expert Mode', 'Demo'])
+
+
+# Code for tab expert
+with tab_expert:
+    st.subheader('Model Design')
+    mode = st.radio('Select the designing mode', ['From Scratch', 'File Upload'], captions = ['Define concepts and interconnections manually', 'Upload a file that contains the weight matrix'], horizontal= True )
+
+    if mode == 'From Scratch':
+        num_concepts, num_iter, equilibrium, rule_text, activation_text = input_parameters_fcm()
+        if num_concepts != None:
+            columns_df = create_weight_matrix_columns(num_concepts)
+            edited_columns = st.data_editor(columns_df, hide_index=True)
+
+            weight_matrix_df = create_weight_matrix(num_concepts, edited_columns.values.tolist())
+            
+            edited_matrix = st.data_editor(weight_matrix_df.style.apply(highlight_diagonal, axis=None), hide_index=True, disabled = ['-'], column_config=fix_configs(weight_matrix_df))
+            edited_matrix.set_index('-', inplace = True)
+            edited_matrix = edited_matrix.astype(float)
+            st.pyplot(create_visual_map(edited_matrix))
+            
+
+
+    else: 
+        weight_matrix = st.file_uploader('Upload a .csv or .xlsx')
+
+    
+    
+
+
+
+
+
+
+
+
+
