@@ -5,6 +5,7 @@ sys.path.insert(1, '../fcm_codes')
 sys.path.insert(1, '../app_components')
 from fcm_codes.fcm_simple import *
 from app_components.construct_component import *
+from app_components.fcm_graph_component import *
 
 # General Page Configurations
 st.set_page_config(
@@ -49,7 +50,8 @@ with tab_expert:
             edited_matrix = st.data_editor(weight_matrix_df.style.apply(highlight_diagonal, axis=None), hide_index=True, disabled = ['-'], column_config=fix_configs(weight_matrix_df))
             edited_matrix.set_index('-', inplace = True)
             edited_matrix = edited_matrix.astype(float)
-            st.pyplot(create_visual_map(edited_matrix))
+            graph(edited_matrix)
+            
             
 
 

@@ -106,7 +106,11 @@ def highlight_diagonal(x):
 
 def create_visual_map(
     df,
-    
+    figsize = 10,
+    k = 0.25,
+    node_size = 800,
+    font_size = 6,
+    title_font_size = 30,
     ):
     import networkx as nx
     G = nx.Graph()
@@ -116,13 +120,13 @@ def create_visual_map(
             if weight != 0.0:
                 G.add_edge(i, j, weight = weight)
 
-    fig, ax = plt.subplots(figsize=(15, 15))
-    pos = nx.spring_layout(G, k=0.25)  # Define layout with reduced 'k' to separate nodes
-    nx.draw(G, pos, with_labels=True, node_size=800, node_color='skyblue', font_size=6)  # Adjust node_size and font_size
+    fig, ax = plt.subplots(figsize=(figsize, figsize))
+    pos = nx.spring_layout(G, k=k)  # Define layout with reduced 'k' to separate nodes
+    nx.draw(G, pos, with_labels=True, node_size=node_size, node_color='skyblue', font_size=font_size)  # Adjust node_size and font_size
     # Add edge labels (weights)
     edge_labels = {(n1, n2): d['weight'] for n1, n2, d in G.edges(data=True)}
     nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=6)  # Adjust font_size for edge labels
-    plt.title('Fuzzy Cognitive Map')
+    plt.title('Fuzzy Cognitive Map', )
     plt.tight_layout()  # Ensure tight layout
     return fig
     
