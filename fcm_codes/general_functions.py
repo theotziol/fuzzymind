@@ -5,43 +5,24 @@ from matplotlib import pyplot as plt
 
 
 help_weight_matrix = 'Give a weight value in [-1,1]'
-
-def kosko():
-    pass
-
-def stylios():
-    pass
-
-def rescaled():
-    pass
-
-#activation functions
-
-def sigmoid():
-    pass
-
-def bivalent():
-    pass
-
-def trivalent():
-    pass
-
-def tanh():
-    pass
+help_state_vector_sigmoid = 'Give a concept value in [0,1]'
+help_state_vector_tanh = 'Give a concept value in [-1,1]'
+help_state_vector_bivalent = 'Give a concept value in {0,1}'
+help_state_vector_trivalent = 'Give a concept value in {-1,0,1}'
 
 
-dict_rules = {
-    'Kosko' : kosko,
-    'Stylios' : stylios,
-    'Rescaled' : rescaled,
-}
+rules = [
+    'Kosko' ,
+    'Stylios',
+    'Rescaled',
+]
 
-dict_functions = {
-    'Sigmoid' : sigmoid,
-    'Bivalent' : bivalent,
-    'Trivalent' : trivalent, 
-    'Tanh' : tanh,
-}
+functions = [
+    'Sigmoid' ,
+    'Bivalent' ,
+    'Trivalent' , 
+    'Tanh',
+]
 
 def create_weight_matrix_columns(num_concepts : int):
     '''
@@ -51,7 +32,7 @@ def create_weight_matrix_columns(num_concepts : int):
     '''
     dic = { }
     for i in range(num_concepts):
-        dic[f'concept_{i+1}'] = [f'Give a name to concept {i+1}']
+        dic[f'concept_{i+1}'] = [f'name of concept {i+1}']
     df = pd.DataFrame(dic)
     return df
 
@@ -110,6 +91,7 @@ def create_visual_map(
     k = 0.25,
     node_size = 800,
     font_size = 6,
+    weight_font_size = 6,
     title_font_size = 30,
     ):
     import networkx as nx
@@ -125,13 +107,44 @@ def create_visual_map(
     nx.draw(G, pos, with_labels=True, node_size=node_size, node_color='skyblue', font_size=font_size)  # Adjust node_size and font_size
     # Add edge labels (weights)
     edge_labels = {(n1, n2): d['weight'] for n1, n2, d in G.edges(data=True)}
-    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=6)  # Adjust font_size for edge labels
-    plt.title('Fuzzy Cognitive Map', )
+    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=weight_font_size)  # Adjust font_size for edge labels
+    plt.title('Fuzzy Cognitive Map', fontsize = title_font_size)
     plt.tight_layout()  # Ensure tight layout
     return fig
     
 
+def create_initial_state_vector(concepts, activation):
+    '''
+    This function creates an one row df to be used with st.data_editor. It aims to allow the user to edit the concept initial values.
+    Args:
+        concept names
+    Returns:
+        -pd.DataFrame
+        -config dic: The file that 
+    '''
+    config = {}
+    array = np.zeros((1, len(concepts)))
+    df = pd.DataFrame(array, columns=concepts)
 
+    if activation == 'Sigmoid':
+        help_text = help_state_vector_sigmoid
+        min_value, max_value, step = 0, 1, 0.01
+    elif activation == 'Tanh':
+        help_text = help_state_vector_tanh
+        min_value, max_value, step = -1, 1, 0.01
+    elif activation == 'Bivalent':
+        help_text = help_state_vector_bivalent
+        min_value, max_value, step = 0, 1, 1
+    elif activation == 'Trivalent':
+        help_text = help_state_vector_trivalent
+        min_value, max_value, step = -1, 1, 1
+    else:
+        help_text = help_state_vector_tanh
+        min_value, max_value, step = -1, 1, 0.01
+
+    for column in df.columns:
+        config[column] = st.column_config.NumberColumn(help = help_text, min_value = min_value, max_value = max_value, step = step)
+    return df, config
 
 
 
