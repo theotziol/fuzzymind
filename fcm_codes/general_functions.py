@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd 
 import streamlit as st
 from matplotlib import pyplot as plt
+import matplotlib as mpl
 
 
 help_weight_matrix = 'Give a weight value in [-1,1]'
@@ -13,7 +14,7 @@ help_state_vector_trivalent = 'Give a concept value in {-1,0,1}'
 
 rules = [
     'Kosko' ,
-    'Stylios',
+    'Modified Kosko',
     'Rescaled',
 ]
 
@@ -88,30 +89,67 @@ def highlight_diagonal(x):
 def create_visual_map(
     df,
     figsize = 10,
-    k = 0.25,
-    node_size = 800,
+    node_size = 1000,
     font_size = 6,
     weight_font_size = 6,
     title_font_size = 30,
+    arrowsize = 10,
     ):
+    '''
+    This function creates the fcm graph based on the networkx library
+    '''
+    #todo add more layouts with a widget
+    #todo add more colomaps and colors with a widget
     import networkx as nx
-    G = nx.Graph()
+    G = nx.MultiDiGraph()
     for i in df.columns:
         for j in df.columns:
             weight = df[i].loc[j]
             if weight != 0.0:
                 G.add_edge(i, j, weight = weight)
 
-    fig, ax = plt.subplots(figsize=(figsize, figsize))
-    pos = nx.spring_layout(G, k=k)  # Define layout with reduced 'k' to separate nodes
-    nx.draw(G, pos, with_labels=True, node_size=node_size, node_color='skyblue', font_size=font_size)  # Adjust node_size and font_size
+
+    fig, ax = plt.subplots(figsize=(figsize + figsize//3, figsize))
+    pos = nx.circular_layout(G)  # Define layout. Alternative: https://networkx.org/documentation/stable/reference/generated/networkx.drawing.layout.spring_layout.html
+    M = G.number_of_edges()
+    colors = [i[2]['weight'] for i in G.edges(data=True)]
+
+    options = {
+    "node_color": 'skyblue',
+    "edge_color": list(np.abs(colors)),
+    "width": 4,
+    "edge_cmap": plt.cm.Blues,
+    "with_labels": True,
+    "node_size" : node_size,
+    "font_size" : font_size,
+    "arrows" : True,
+    "arrowstyle" : 'fancy',
+    "arrowsize" : arrowsize,
+    "connectionstyle" : 'arc3, rad = 0.1',
+    "edge_vmin" : 0,
+    "edge_vmax": 1,
+    }
+    # nx.draw(G, pos, with_labels=True, node_size=node_size, node_color='skyblue', font_size=font_size)  # Adjust node_size and font_size
+    
+    nx.draw(G, pos, **options)
     # Add edge labels (weights)
     edge_labels = {(n1, n2): d['weight'] for n1, n2, d in G.edges(data=True)}
-    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=weight_font_size)  # Adjust font_size for edge labels
-    plt.title('Fuzzy Cognitive Map', fontsize = title_font_size)
+    labels = nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=weight_font_size, label_pos=0.4, connectionstyle='arc3, rad = 0.1')  # Adjust font_size for edge labels
+    sm = plt.cm.ScalarMappable(cmap = plt.cm.Blues, norm = plt.Normalize(0, 1))
+    sm._A = []
+    ticks = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+    
+    cbar = plt.colorbar(sm, ticks = ticks, shrink = 0.95, fraction = 0.1)
+    cbar.ax.set_yticklabels([f'$\\pm {i}$' if i != 0 else '0' for i in ticks])
+    cbar.ax.tick_params(labelsize = font_size)
+    plt.title('Fuzzy Cognitive Map', fontsize = title_font_size + 1)
     plt.tight_layout()  # Ensure tight layout
     return fig
     
+
+
+
+
 
 def create_initial_state_vector(concepts, activation):
     '''

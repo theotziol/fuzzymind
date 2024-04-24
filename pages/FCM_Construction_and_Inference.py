@@ -35,6 +35,7 @@ with tab_design:
     mode = st.radio('Select the designing mode', ['Design Manually', 'File Upload'], captions = ['Define concepts and interconnections manually', 'Upload a file that contains the weight matrix'], horizontal= True )
 
     if mode == 'Design Manually':
+        #todo aggregation of fuzzy (csv)
         st.subheader('Define the total number of concepts', divider = 'green')
         num_concepts = st.number_input('Give the number of concepts', min_value=3, max_value=50, value = None, help = 'Give an integer in the range [3, 50]')
         if num_concepts != None:
