@@ -15,7 +15,7 @@ bivalent_formula = '$f(x)= \\begin{cases} 1, & x > 0\\\ 0, & x \leq 0 \end{cases
 trivalent_formula = '$f(x)= \\begin{cases} -1, & x < 0\\\ 0, & x = 0\\\ 1, & x > 1 \end{cases}$'
 
 kosko_formula = '$A^{t+1}_i = f(\\sum_{j = 1, \\\ i \\neq j}^M w_{ji} A^{t}_j)$'
-stylios_formula = '$A^{t+1}_i = f(\\sum_{j = 1, \\\ i \\neq j}^M w_{ji} A^{t}_j + A^{t}_i)$'
+modified_kosko_formula = '$A^{t+1}_i = f(\\sum_{j = 1, \\\ i \\neq j}^M w_{ji} A^{t}_j + A^{t}_i)$'
 rescaled_formula = '$A^{t+1}_i = f(\\sum_{j = 1, \\\ i \\neq j}^M w_{ji} (2A^{t}_j - 1) + (2A^{t}_i -1)$'
 
 #todo check for cache
@@ -30,13 +30,13 @@ def inference_parameters():
     '''
     col1, col2 = st.columns(2, gap = "medium")
     with col1:
-        num_iter = st.slider('Select maximum iterations', 1, 30, 20, help = help_iterations)
+        num_iter = st.slider('Select maximum iterations', 1, 40, 20, help = help_iterations)
         equilibrium = st.number_input('Give the equilibrium threshold', min_value=0.00001, max_value=0.01, value = 0.001, format="%f", help = help_equilibrium)
         rule_text = st.selectbox('Select the activation rule', rules, index = 1)
         if rule_text == 'Kosko':
             st.write(kosko_formula)
-        if rule_text == 'Stylios':
-            st.write(stylios_formula)
+        if rule_text == 'Modified Kosko':
+            st.write(modified_kosko_formula)
         if rule_text == 'Rescaled':
             st.write(rescaled_formula)
         

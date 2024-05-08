@@ -5,7 +5,7 @@ import numpy as np
 
 
 st.set_page_config(
-    page_title = 'Neural-FCM home',
+    page_title = 'FCM-app',
     page_icon="🧠",
     layout = 'wide',
     menu_items = {
@@ -17,17 +17,17 @@ st.set_page_config(
 
 
 
-st.write("# Neural-FCM! 👋")
+st.write("# FCM-app! 👋")
 
-st.sidebar.success("Select a tool above.")
+st.sidebar.success("Select a tool aboove.")
 
 st.markdown(
     """
-    Neural-FCM is an open-source app built with [Streamlit](https://docs.streamlit.io) framework for Artificial Intelligence (AI) based decision making with 
-    **Fuzzy Cognitive Maps (FCM) and/or Deep Learning**. It currently provides FCM construction and Inference, FCM learning and image classification tasks with Trasnfer Learning.
+    FCM-app is an open-source web application built with [Streamlit](https://docs.streamlit.io) framework for Artificial Intelligence (AI) based decision making with 
+    **Fuzzy Cognitive Maps (FCM) and/or Deep Learning**. It currently provides FCM construction and inference, FCM learning with the Neural-FCM algorithm and image classification tasks with Transfer Learning.
     
     This app was developed by Dr. Theodoros Tziolas during his Ph.D. and under the supervision of [Prof. Elpiniki Papageorgiou](https://www.energy.uth.gr/index.php/en/personnel/papageorgiou-elpiniki.html).  
-    **👈 Select an A.I. tool from the sidebar** to explore the app's capabilities! 
+    **👈 Navigate though the sidebar** to explore the app's capabilities! 
     
     **The development of this app was supported by ELIDEK and [EMERALD](https://emerald.uth.gr/) project!**
     ### Do you have any question or face a bug?

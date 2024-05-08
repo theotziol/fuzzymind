@@ -1,5 +1,7 @@
+# This file contains the fcm code for inference
 import numpy as np 
 import pandas as pd 
+
 
 class FCM_numpy:
     def __init__(
@@ -27,7 +29,8 @@ class FCM_numpy:
             b: int, sigmoid shift. An optional parameter to be passed to the sigmoid function to affect the shifting of the curve
         '''
 
-        self.initial_state = initial_state
+        self.initial_state = initial_state.to_numpy()
+        self.columns = weight_matrix.columns
         self.weight_matrix = weight_matrix.to_numpy()
         self.n_iterations = n_iterations
         self.e = e
@@ -35,24 +38,64 @@ class FCM_numpy:
         self.inference_rule = inference_rule
         self.l = l
         self.b = b
+        self.__initialize_inference_parameters()
 
 
     def inference(
         self,
         ):
         '''
-        The inference function
+        The inference function. 
+        Returns:
+            A pd.DataFrame of the inference process
         '''
         stopping_conditions = False
-        self.inference_process = {
-
-        }
+        self.inference_process = [
+            self.initial_state
+        ]
+        while not stopping_conditions:
+            new_state = self.formula(self.inference_process[-1])
+            fixed_new_state = self.function(new_state)
+            self.inference_process.append(fixed_new_state)
+            stopping_conditions = self.__check_stoping_conditions()
+        inference_process = np.array(self.inference_process)
+        df = pd.DataFrame(inference_process[:, 0, :], columns = self.columns)
+        return df.round(4)
         
 
     def __initialize_inference_parameters(
         self,
         ):
-        pass
+        if self.inference_rule == 'Modified Kosko':
+            self.formula = self._modified_kosko
+        elif self.inference_rule == 'Rescaled':
+            self.formula = self._rescaled
+        else:
+            self.formula = self._kosko
+        
+        if self.activation_function == 'Bivalent':
+            self.function = bivalent
+            
+        elif self.activation_function == 'Tanh':
+            self.function = tanh
+
+        elif self.activation_function == 'Trivalent':
+            self.function = trivalent
+        
+        else:
+            self.function = lambda x: sigmoid(x, self.l, self.b)
+        
+    def __check_stoping_conditions(
+        self,
+        ):
+        iteration = len(self.inference_process)
+        dif = np.abs(self.inference_process[-1] - self.inference_process[-2])
+        max_dif = dif.max()
+        if iteration > self.n_iterations or max_dif <= self.e:
+            return True
+        else:
+            return False
+
 
     def _kosko(
         self,

@@ -1,3 +1,5 @@
+#this file contains functions for back-end construction of the FCM and the graphs
+
 import numpy as np
 import pandas as pd 
 import streamlit as st
@@ -100,6 +102,7 @@ def create_visual_map(
     '''
     #todo add more layouts with a widget
     #todo add more colomaps and colors with a widget
+    df = df.transpose() #df is transposed due to column-wise arrows of the graph
     import networkx as nx
     G = nx.MultiDiGraph()
     for i in df.columns:

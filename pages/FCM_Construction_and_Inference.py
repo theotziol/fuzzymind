@@ -4,6 +4,7 @@ import sys
 sys.path.insert(1, '../fcm_codes')
 sys.path.insert(1, '../app_components')
 from fcm_codes.general_functions import *
+from fcm_codes.fcm_class import FCM_numpy
 from app_components.inference_parameters import *
 from app_components.fcm_graph_component import *
 from app_components.inference_tab import *
@@ -68,6 +69,22 @@ with tab_inference:
         
         num_iter, equilibrium, rule_text, activation_text, l , b = inference_parameters()
         initial_vector = define_initial_values(edited_matrix, activation_text)
+        if np.all(initial_vector == 0):
+            st.write('Pass an initial state vector')
+        else:
+            button = st.button('Inference')
+            fcm = FCM_numpy(initial_vector, edited_matrix, num_iter, equilibrium, activation_text, rule_text, l, b)
+            if button:
+                inference = fcm.inference()
+                # for i, n in enumerate(inference):
+                #     print(i,np.round(n, 4))
+                # print('\n')
+                placeholder = inference_results(inference)
+                button_clear = st.button('Clear')
+                if button_clear:
+                    placeholder.empty()
+
+        
         
     
 
