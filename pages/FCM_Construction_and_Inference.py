@@ -8,6 +8,7 @@ from fcm_codes.fcm_class import FCM_numpy
 from app_components.inference_parameters import *
 from app_components.fcm_graph_component import *
 from app_components.inference_tab import *
+from app_components.file_upload import *
 
 # General Page Configurations
 st.set_page_config(
@@ -33,10 +34,9 @@ matrix_exist = False
 with tab_design:
 
     st.subheader('Construct an FCM either by manually defining the concepts and the weighted interconnections, or automatically by uploading a weight matrix.', divider = 'blue')
-    mode = st.radio('Select the designing mode', ['Design Manually', 'File Upload'], captions = ['Define concepts and interconnections manually', 'Upload a file that contains the weight matrix'], horizontal= True )
+    mode = st.radio('Select the designing mode', ['Design Manually', 'File Upload'], captions = ['Define concepts and interconnections manually', 'Upload a .csv that contains the weight matrix'], horizontal= True )
 
     if mode == 'Design Manually':
-        #todo aggregation of fuzzy (csv)
         st.subheader('Define the total number of concepts', divider = 'green')
         num_concepts = st.number_input('Give the number of concepts', min_value=3, max_value=50, value = None, help = 'Give an integer in the range [3, 50]')
         if num_concepts != None:
@@ -55,13 +55,15 @@ with tab_design:
             matrix_exist = True
 
     else: 
-        weight_matrix = st.file_uploader('Upload a .csv or .xlsx')
-        # edited_matrix = ...
-        # matrix_exist = True
-        #todo give preprocessing options/delimeter info etc
-    
+        edited_matrix, file = matrix_upload()
+        if edited_matrix is not None:
+            edited_matrix = edited_matrix.astype(float)
+            matrix_exist = True
+            graph_boolean  = st.radio('Generate FCM graph', ['No', 'Yes'], index = 0, horizontal = True)
+            if graph_boolean == 'Yes':
+                graph(edited_matrix)
 
-    
+  
 
 with tab_inference:
 
@@ -85,8 +87,6 @@ with tab_inference:
                     placeholder.empty()
 
         
-        
-    
 
     else:
         non_matrix_definition()
