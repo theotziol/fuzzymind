@@ -34,6 +34,7 @@ def matrix_upload():
             else:
                 index_col = 0
             dataframe = pd.read_csv(weight_matrix_file, delimiter=delimiter, decimal = decimal, index_col=index_col)
+            dataframe = dataframe.astype(float)
         st.write(dataframe)
     else:
         dataframe = None

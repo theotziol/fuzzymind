@@ -3,12 +3,13 @@ import streamlit as st
 import sys
 sys.path.insert(1, '../fcm_codes')
 sys.path.insert(1, '../app_components')
-from fcm_codes.general_functions import *
+
 from fcm_codes.fcm_class import FCM_numpy
 from app_components.inference_parameters import *
 from app_components.fcm_graph_component import *
 from app_components.inference_tab import *
 from app_components.file_upload import *
+from app_components.design_manually import *
 
 # General Page Configurations
 st.set_page_config(
@@ -37,18 +38,8 @@ with tab_design:
     mode = st.radio('Select the designing mode', ['Design Manually', 'File Upload'], captions = ['Define concepts and interconnections manually', 'Upload a .csv that contains the weight matrix'], horizontal= True )
 
     if mode == 'Design Manually':
-        st.subheader('Define the total number of concepts', divider = 'green')
-        num_concepts = st.number_input('Give the number of concepts', min_value=3, max_value=50, value = None, help = 'Give an integer in the range [3, 50]')
-        if num_concepts != None:
-            st.subheader('Define concepts', divider = 'green')
-            columns_df = create_weight_matrix_columns(num_concepts)
-            edited_columns = st.data_editor(columns_df, hide_index=True)
-            st.subheader('Define weighted interconnections', divider = 'green')
-            weight_matrix_df = create_weight_matrix(num_concepts, edited_columns.values.tolist())
-            
-            edited_matrix = st.data_editor(weight_matrix_df.style.apply(highlight_diagonal, axis=None), hide_index=True, disabled = ['-'], column_config=fix_configs(weight_matrix_df))
-            edited_matrix.set_index('-', inplace = True)
-            edited_matrix = edited_matrix.astype(float)
+        edited_matrix, exists = manual_tab()
+        if exists:
             graph_boolean  = st.radio('Generate FCM graph', ['No', 'Yes'], index = 0, horizontal = True)
             if graph_boolean == 'Yes':
                 graph(edited_matrix)
@@ -57,7 +48,6 @@ with tab_design:
     else: 
         edited_matrix, file = matrix_upload()
         if edited_matrix is not None:
-            edited_matrix = edited_matrix.astype(float)
             matrix_exist = True
             graph_boolean  = st.radio('Generate FCM graph', ['No', 'Yes'], index = 0, horizontal = True)
             if graph_boolean == 'Yes':
