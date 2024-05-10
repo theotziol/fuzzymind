@@ -9,6 +9,7 @@ from app_components.inference_parameters import *
 from app_components.fcm_graph_component import *
 from app_components.inference_tab import *
 from app_components.file_upload import *
+from app_components.design_manually import *
 
 # General Page Configurations
 st.set_page_config(
@@ -34,3 +35,5 @@ matrix_exist = False
 with tab_design:
     st.subheader('Construct the FCM and the fuzzy sets manually, upload a file, or upload multiple files for knowledge aggregation', divider = 'blue')
     mode = st.radio('Select the designing mode', ['Design Manually', 'File Upload', 'Knowledge Aggregation'], captions = ['Define concepts and interconnections manually', 'Upload a .csv that contains the weight matrix', 'Upload multiplr .csv files for knowledge aggregation'], horizontal= True )
+    if mode == 'Design Manually':
+        fuzzy_sets()
