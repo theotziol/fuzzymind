@@ -1,19 +1,32 @@
 import streamlit as st
 import sys
+from copy import deepcopy as dc
 
 sys.path.insert(1, '../fcm_codes')
 from fcm_codes.general_functions import *
+import skfuzzy
+
 
 dic_variables_caption = {
-    5 : ':red[-High], :red[-Low],  None,  :blue[+Low], :blue[+High]',
-    7 : ':red[-High], :red[-Medium], :red[-Low],  None,  :blue[+Low], :blue[+Medium], :blue[+High]',
-    11 : ':red[-Very High], :red[-High], :red[-Medium], :red[-Low], :red[-Very Low],  None,  :blue[+Very Low] :blue[+Low], :blue[+Medium], :blue[+High], :blue[+Very High],',
+    5 : '(:red[-High], :red[-Low],  None,  :blue[+Low], :blue[+High])',
+    7 : '(:red[-High], :red[-Medium], :red[-Low],  None,  :blue[+Low], :blue[+Medium], :blue[+High])',
+    11 : '(:red[-Very High], :red[-High], :red[-Medium], :red[-Low], :red[-Very Low],  None,  :blue[+Very Low], :blue[+Low], :blue[+Medium], :blue[+High], :blue[+Very High])',
 }
 
 dic_variables = {
     5 : ['-High', '-Low', 'None', '+Low', '+High'],
     7 : ['-High','-Medium', '-Low', 'None', '+Low', '+Medium', '+High'],
-    11 : ['-Very High','-High','-Medium', '-Low', '-Very Low', 'None', '+Very Low', '+Low', '+Medium', '+High']
+    11 : ['-Very High','-High','-Medium', '-Low', '-Very Low', 'None', '+Very Low', '+Low', '+Medium', '+High', '+Very High']
+}
+
+dic_final = {
+    'method' : None,
+    'range' : [-1.0, 1.0],
+    'step' : 0.01,
+    'memberships' : {
+
+    },
+
 }
 
 
@@ -39,20 +52,128 @@ def fuzzy_sets():
     The streamlit widgets for creating fuzzy sets
     '''
     st.subheader('Define fuzzy sets', divider = 'green')
-    fuzzy_variables = st.radio('Select fuzzy variables', [5, 7, 11], captions=[dic_variables_caption[i] for i in dic_variables_caption.keys()])
-    with st.expander('Parameters...'):
+    num_fuzzy_variables = st.radio('Select fuzzy variables', [5, 7, 11], captions=[dic_variables_caption[i] for i in dic_variables_caption.keys()])
+    with st.expander('Modify Parameters...'):
         membership = st.selectbox('Select Membership Function', ['Triangular', 'Trapezoidal', 'Gaussian'], index = 0)
         st.write('$\\mathbb{U} = [-1, 1]$')
-        col1, col2 = st.columns(2)
-        with col1:
-            #this column is for memberhsip's parameters modification
-            st.write("Modify Membership Parameters")
+        dic = initialize_fuzzy_memberships(dic_variables[num_fuzzy_variables], membership)
+        modify_fuzzy_memberships(dic)
+         
             
-        with col2:
-            #this column is for plotting the fuzzy sets 
-            pass
+
+def initialize_fuzzy_memberships(memberships, method):
+    '''
+    This function initializes the parameters of the fuzzy memberhsips. 
+    It divides the universe of discource (U) into evenly spaced chunks to position the highest membership values. 
+    The starting and ending points of the membership functions are then automatically constructed
+    Args:
+        memberships: a list of the memberships names
+        method: string, the type of the membership function. Currently accepts ['Triangular', 'Trapezodial', 'Gaussian']
+    Returns:
+        dic
+    '''
+    new_dic = dc(dic_final)
+    U = new_dic['range']
+    new_dic['method'] = method
+    mids = np.linspace(U[0], U[-1], len(memberships))
+    mids = np.round(mids, 2)
+    starting_points = np.insert(mids, 0, mids[0])
+    starting_points = np.delete(starting_points, -1)
+
+    finishing_points = np.insert(mids, -1, mids[-1])
+    finishing_points = np.delete(finishing_points, 0)
+    
+    lower_trapezoidal = []
+    upper_trapezoidal = []
+    for i, value in enumerate(mids):
+        #try except to avoid zero division
+        try:
+            value_low = (mids[i] + starting_points[i])/2
+        except:
+            value_low = starting_points[i]
+        
+        try:
+            value_high = (mids[i] + finishing_points[i])/2
+        except:
+            value_high = finishing_points[i]
+
+        lower_trapezoidal.append(value_low)
+        upper_trapezoidal.append(value_high)
+    
+    sigma = (2/len(memberships))/2
+
+    if method == 'Triangular':
+        for i,mf in enumerate(memberships):
+            new_dic['memberships'][mf] = [starting_points[i], mids[i], finishing_points[i]]
+    elif method == 'Trapezoidal':
+        for i,mf in enumerate(memberships):
+            new_dic['memberships'][mf] = [starting_points[i], lower_trapezoidal[i], upper_trapezoidal[i], finishing_points[i]]
+    elif method == 'Gaussian':
+        for i,mf in enumerate(memberships):
+            new_dic['memberships'][mf] = [mids[i],sigma]
+    return new_dic
 
 
+def modify_fuzzy_memberships(initialized_dic):
+    col1, col2 = st.columns(2)
+    method = initialized_dic['method']
+    array = np.linspace(initialized_dic['range'][0], initialized_dic['range'][-1], int((initialized_dic['range'][-1]-initialized_dic['range'][0])/initialized_dic['step']))
+    
+    with col1:
+        new_dic = dc(initialized_dic)
+        mfs = {}
+        
+        for i in new_dic['memberships'].keys():
+            if method == 'Triangular':
+                col1_1, col1_2 = st.columns(2)
+                with col1_1:
+                    st.write('Define the **start** and the **end**')
+                    #here the user changes the start and the end of the triangle
+                    start, end = st.slider(f'**{i}** mf', new_dic['range'][0], new_dic['range'][1], (new_dic['memberships'][i][0], new_dic['memberships'][i][-1]))
+                    new_dic['memberships'][i][0] = start
+                    new_dic['memberships'][i][-1] = end
+                with col1_2:
+                    #here the user changes the mid of the triangle
+                    st.write('Define the **middle**')
+                    mid = st.slider(f'**{i}** mf', start, end, new_dic['memberships'][i][1])
+                    new_dic['memberships'][i][1] = mid
+                    mfs[i] = skfuzzy.trimf(array, new_dic['memberships'][i])
+
+            elif method == 'Trapezoidal':
+                col1_1, col1_2 = st.columns(2)
+                with col1_1:
+                    st.write('Define the **start** and the **end**')
+                    start, end = st.slider(f'**{i}** mf', new_dic['range'][0], new_dic['range'][1], (new_dic['memberships'][i][0], new_dic['memberships'][i][-1]))
+                    new_dic['memberships'][i][0] = start
+                    new_dic['memberships'][i][-1] = end
+                with col1_2:
+                    st.write('Define the **start** and the **end** of the trapezoid')
+                    start_center, end_center = st.slider(f'**{i}** mf', start, end, (new_dic['memberships'][i][1], new_dic['memberships'][i][2]))
+                    new_dic['memberships'][i][1] = start_center
+                    new_dic['memberships'][i][2] = end_center
+                    mfs[i] = skfuzzy.trapmf(array, new_dic['memberships'][i])
+
+            elif method == 'Gaussian':
+                col1_1, col1_2 = st.columns(2)
+                with col1_1:
+                    st.write('Define the **mean**')
+                    mean = st.slider(f'**{i}** mf', new_dic['range'][0], new_dic['range'][1], new_dic['memberships'][i][0])
+                    new_dic['memberships'][i][0] = mean
+                with col1_2:
+                    st.write('Define the $\\sigma$')
+                    sigma = st.slider(f'**{i}** mf', new_dic['range'][0], new_dic['range'][1], new_dic['memberships'][i][1])
+                    new_dic['memberships'][i][-1] = sigma
+                    mfs[i] = skfuzzy.gaussmf(array, new_dic['memberships'][i][0],new_dic['memberships'][i][-1] )
+
+    df = pd.DataFrame(mfs, index = array)     
+    with col2:
+        st.write('')
+        st.write('')
+        st.caption("Plots")
+        st.line_chart(df)
+    
+
+            
 
 def manual_tab_linguistic():
     '''

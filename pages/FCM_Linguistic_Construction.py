@@ -25,7 +25,7 @@ st.set_page_config(
 
 st.sidebar.success("Select a tool above.")
 st.title('FCM Linguistic Construction and Inference')
-st.header('Construct an FCM based on iinguistic variables and fuzzy sets theory.', divider = 'blue')
+st.header('Construct an FCM based on linguistic variables and fuzzy sets theory.', divider = 'blue')
 
 tab_design, tab_inference = st.tabs(['FCM Design', 'Inference'])
 
@@ -34,6 +34,6 @@ matrix_exist = False
 # Code for tab expert
 with tab_design:
     st.subheader('Construct the FCM and the fuzzy sets manually, upload a file, or upload multiple files for knowledge aggregation', divider = 'blue')
-    mode = st.radio('Select the designing mode', ['Design Manually', 'File Upload', 'Knowledge Aggregation'], captions = ['Define concepts and interconnections manually', 'Upload a .csv that contains the weight matrix', 'Upload multiplr .csv files for knowledge aggregation'], horizontal= True )
+    mode = st.radio('Select the designing mode', ['Design Manually', 'File Upload', 'Knowledge Aggregation'], captions = ['Define concepts and interconnections manually', 'Upload a .csv that contains the weight matrix', 'Upload multiple .csv files for knowledge aggregation'], horizontal= True )
     if mode == 'Design Manually':
         fuzzy_sets()
