@@ -36,4 +36,29 @@ with tab_design:
     st.subheader('Construct the FCM and the fuzzy sets manually, upload a file, or upload multiple files for knowledge aggregation', divider = 'blue')
     mode = st.radio('Select the designing mode', ['Design Manually', 'File Upload', 'Knowledge Aggregation'], captions = ['Define concepts and interconnections manually', 'Upload a .csv that contains the weight matrix', 'Upload multiple .csv files for knowledge aggregation'], horizontal= True )
     if mode == 'Design Manually':
-        fuzzy_sets()
+        dic_mfs, dic_final = fuzzy_sets()
+        edited_matrix, matrix_exist = manual_tab_linguistic(dic_final)
+
+with tab_inference:
+    if matrix_exist:
+        
+        num_iter, equilibrium, rule_text, activation_text, l , b = inference_parameters()
+        initial_vector = define_initial_values(edited_matrix, activation_text)
+        if np.all(initial_vector == 0):
+            st.write('Pass an initial state vector')
+        else:
+            button = st.button('Inference')
+            fcm = FCM_numpy(initial_vector, edited_matrix, num_iter, equilibrium, activation_text, rule_text, l, b)
+            if button:
+                inference = fcm.inference()
+                # for i, n in enumerate(inference):
+                #     print(i,np.round(n, 4))
+                # print('\n')
+                placeholder = inference_results(inference)
+                button_clear = st.button('Clear')
+                if button_clear:
+                    placeholder.empty()
+    else:
+        non_matrix_definition()
+
+

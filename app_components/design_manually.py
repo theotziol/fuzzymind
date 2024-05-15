@@ -5,6 +5,7 @@ from copy import deepcopy as dc
 sys.path.insert(1, '../fcm_codes')
 from fcm_codes.general_functions import *
 import skfuzzy
+import json
 
 
 dic_variables_caption = {
@@ -50,6 +51,8 @@ def manual_tab():
 def fuzzy_sets():
     '''
     The streamlit widgets for creating fuzzy sets
+    It utilizes two functions from within this module to initialize and modify the mf's parameters.
+    It returns two dictionairies that contain 1) the mfs arrays and 2) a dictionairy that contains all the necessary information for rebuilding the fuzzy sets
     '''
     st.subheader('Define fuzzy sets', divider = 'green')
     num_fuzzy_variables = st.radio('Select fuzzy variables', [5, 7, 11], captions=[dic_variables_caption[i] for i in dic_variables_caption.keys()])
@@ -57,7 +60,10 @@ def fuzzy_sets():
         membership = st.selectbox('Select Membership Function', ['Triangular', 'Trapezoidal', 'Gaussian'], index = 0)
         st.write('$\\mathbb{U} = [-1, 1]$')
         dic = initialize_fuzzy_memberships(dic_variables[num_fuzzy_variables], membership)
-        modify_fuzzy_memberships(dic)
+        mfs_dic, final_dic = modify_fuzzy_memberships(dic)
+    return mfs_dic, final_dic
+        
+
          
             
 
@@ -115,6 +121,9 @@ def initialize_fuzzy_memberships(memberships, method):
 
 
 def modify_fuzzy_memberships(initialized_dic):
+    '''
+    This function contains widgets to modify the fuzzy memberships
+    '''
     col1, col2 = st.columns(2)
     method = initialized_dic['method']
     array = np.linspace(initialized_dic['range'][0], initialized_dic['range'][-1], int((initialized_dic['range'][-1]-initialized_dic['range'][0])/initialized_dic['step']))
@@ -127,14 +136,14 @@ def modify_fuzzy_memberships(initialized_dic):
             if method == 'Triangular':
                 col1_1, col1_2 = st.columns(2)
                 with col1_1:
-                    st.write('Define the **start** and the **end**')
+                    #st.write('Define **start** and **ending**:')
                     #here the user changes the start and the end of the triangle
                     start, end = st.slider(f'**{i}** mf', new_dic['range'][0], new_dic['range'][1], (new_dic['memberships'][i][0], new_dic['memberships'][i][-1]))
                     new_dic['memberships'][i][0] = start
                     new_dic['memberships'][i][-1] = end
                 with col1_2:
                     #here the user changes the mid of the triangle
-                    st.write('Define the **middle**')
+                    #st.write('Define **middle**:')
                     mid = st.slider(f'**{i}** mf', start, end, new_dic['memberships'][i][1])
                     new_dic['memberships'][i][1] = mid
                     mfs[i] = skfuzzy.trimf(array, new_dic['memberships'][i])
@@ -142,12 +151,12 @@ def modify_fuzzy_memberships(initialized_dic):
             elif method == 'Trapezoidal':
                 col1_1, col1_2 = st.columns(2)
                 with col1_1:
-                    st.write('Define the **start** and the **end**')
+                    #st.write('Define **start** and **ending**:')
                     start, end = st.slider(f'**{i}** mf', new_dic['range'][0], new_dic['range'][1], (new_dic['memberships'][i][0], new_dic['memberships'][i][-1]))
                     new_dic['memberships'][i][0] = start
                     new_dic['memberships'][i][-1] = end
                 with col1_2:
-                    st.write('Define the **start** and the **end** of the trapezoid')
+                    #st.write('Define **start** and **ending** of the trapezoids:')
                     start_center, end_center = st.slider(f'**{i}** mf', start, end, (new_dic['memberships'][i][1], new_dic['memberships'][i][2]))
                     new_dic['memberships'][i][1] = start_center
                     new_dic['memberships'][i][2] = end_center
@@ -156,35 +165,55 @@ def modify_fuzzy_memberships(initialized_dic):
             elif method == 'Gaussian':
                 col1_1, col1_2 = st.columns(2)
                 with col1_1:
-                    st.write('Define the **mean**')
+                    #st.write('Define **mean**:')
                     mean = st.slider(f'**{i}** mf', new_dic['range'][0], new_dic['range'][1], new_dic['memberships'][i][0])
                     new_dic['memberships'][i][0] = mean
                 with col1_2:
-                    st.write('Define the $\\sigma$')
+                    #st.write('Define $\\sigma$:')
                     sigma = st.slider(f'**{i}** mf', new_dic['range'][0], new_dic['range'][1], new_dic['memberships'][i][1])
                     new_dic['memberships'][i][-1] = sigma
                     mfs[i] = skfuzzy.gaussmf(array, new_dic['memberships'][i][0],new_dic['memberships'][i][-1] )
 
     df = pd.DataFrame(mfs, index = array)     
     with col2:
-        st.write('')
-        st.write('')
+        for i in range(len(mfs.keys())//2):
+            st.write('')
         st.caption("Plots")
         st.line_chart(df)
-    
+        json_data = json.dumps(new_dic)
+        st.json(json_data, expanded=False)
+        st.download_button(
+            "Download JSON",
+            json_data,
+            "fuzzy_info.json",
+            mime="application/json",
+        )
+    return mfs, new_dic
 
             
 
-def manual_tab_linguistic():
+def manual_tab_linguistic(dic):
     '''
     The main tab for manual linguistic fcm construction
     '''
-    st.subheader('Define the total number of concepts', divider = 'green')
+    st.subheader('Define the total number of concepts', divider = 'blue')
     num_concepts = st.number_input('Give the number of concepts', min_value=3, max_value=50, value = None, help = 'Give an integer in the range [3, 50]')
     if num_concepts != None:
-        st.subheader('Define concepts', divider = 'green')
+        st.subheader('Define concepts', divider = 'blue')
         columns_df = create_weight_matrix_columns(num_concepts)
         edited_columns = st.data_editor(columns_df, hide_index=True)
+        st.subheader('Define fuzzy interconnections', divider = 'green')
+        mfs = list(dic['memberships'].keys())
+        weight_matrix_df = create_linguistic_weight_matrix(num_concepts, edited_columns.values.tolist(), mfs)
+        edited_matrix = st.data_editor(weight_matrix_df.style.apply(highlight_diagonal, axis=None), hide_index=True, disabled = ['-'], column_config=fix_configs_linguistic(weight_matrix_df, mfs))
+        edited_matrix.set_index('-', inplace = True)
+        return edited_matrix, True
+
+    else:
+        return None, False
+        
+
+
         
         
 

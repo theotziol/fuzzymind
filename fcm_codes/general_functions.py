@@ -8,6 +8,7 @@ import matplotlib as mpl
 
 
 help_weight_matrix = 'Give a weight value in [-1,1]'
+help_weight_matrix_linguistic = 'Double click on each cell to select the fuzzy relationship among concepts based on the defined mfs'
 help_state_vector_sigmoid = 'Give a concept value in [0,1]'
 help_state_vector_tanh = 'Give a concept value in [-1,1]'
 help_state_vector_bivalent = 'Give a concept value in {0,1}'
@@ -61,6 +62,29 @@ def create_weight_matrix(num_concepts:int, concept_columns : list):
     df = pd.DataFrame(zeros, columns=columns)
     return df
 
+def create_linguistic_weight_matrix(num_concepts:int, concept_columns : list, mfs : list):
+    '''
+    it creates a weight matrix with shape (num_concepts, num_concepts+1). 
+    The reason behind this is that st.data_editor does not allow multiindex (str index), thus the concept names cannot be passed as index.
+    To resolve this, a new column is inserted in the begining of the dataframe (column_name = '-') that contains the concept names.
+    Args:
+        num_concepts : int, the number of concepts
+        concept_columns : list, the concept names
+        mfs: list, the defined memberships functions
+
+    Returns:
+        str type pd.DataFrame
+    '''
+
+    columns = np.array(concept_columns)
+    value = mfs[(len(mfs)//2)] #take the middle as initial value (expected to be None)
+    matrix = np.full((num_concepts, num_concepts+1), value, dtype="object")
+    
+    matrix[:, 0] = columns
+    columns = np.insert(columns, 0, '-')
+    df = pd.DataFrame(matrix, columns=columns)
+    return df
+
 def fix_configs(df, index = '-'):
     '''
     This function employs the st.column_config to ensure that each weight that is passed is in [-1, 1]
@@ -76,6 +100,24 @@ def fix_configs(df, index = '-'):
             continue
         else:
             config[column] = st.column_config.NumberColumn(help = help_weight_matrix, min_value = -1.0, max_value = 1.0, step = 0.01)
+    return config
+
+def fix_configs_linguistic(df, mfs, index = '-'):
+    '''
+    This function employs the st.column_config to ensure that each weight that is passed is from the fuzzy memberships that were previously defined
+    Args: 
+        df :  The pd.DataFrame that will be given to the st.data_editor,
+        mfs : list, the defined membership functions,
+        index : The dummy column name that is given as index. default ('-')
+    '''
+    config = {
+
+    }
+    for column in df.columns:
+        if column == index:
+            continue
+        else:
+            config[column] = st.column_config.SelectboxColumn(help = help_weight_matrix_linguistic, options = mfs)
     return config
 
 
