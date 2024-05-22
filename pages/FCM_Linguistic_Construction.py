@@ -8,7 +8,7 @@ from fcm_codes.fcm_class import FCM_numpy
 from app_components.inference_parameters import *
 from app_components.fcm_graph_component import *
 from app_components.inference_tab_linguistic import *
-from app_components.file_upload import *
+from app_components.file_upload_linguistic import *
 from app_components.design_manually_linguistic import *
 
 # General Page Configurations
@@ -33,17 +33,38 @@ matrix_exist = False
 
 # Code for tab expert
 with tab_design:
-    st.subheader('Construct the FCM and the fuzzy sets manually, upload a file, or upload multiple files for knowledge aggregation', divider = 'blue')
+    st.subheader('Construct the FCM and the fuzzy sets manually, upload a weight matrix file, or upload multiple weight matrices for knowledge aggregation', divider = 'blue')
     mode = st.radio('Select the designing mode', ['Design Manually', 'File Upload', 'Knowledge Aggregation'], captions = ['Define concepts and interconnections manually', 'Upload a .csv that contains the weight matrix', 'Upload multiple .csv files for knowledge aggregation'], horizontal= True )
     if mode == 'Design Manually':
-        dic_mfs, dic_final = fuzzy_sets()
+        dic_final = fuzzy_sets()
         edited_matrix, exists = manual_tab_linguistic(dic_final)
         if exists:
             graph_boolean  = st.radio('Generate FCM graph', ['No', 'Yes'], index = 0, horizontal = True)
             if graph_boolean == 'Yes':
                 graph(edited_matrix, True)
             matrix_exist = True
+            edited_matrix = defuzzification_single(edited_matrix, dic_final)
+            st.dataframe(edited_matrix)
+            graph_boolean_defuz  = st.radio('Generate FCM graph (Defuzzified)', ['No', 'Yes'], index = 0, horizontal = True)
+            if graph_boolean_defuz == 'Yes':
+                graph(edited_matrix, False)
 
+    elif mode == 'File Upload':
+        edited_matrix, file, dic_final = matrix_upload()
+        if edited_matrix is not None and dic_final is not None:
+            print(edited_matrix)
+            matrix_exist = True
+            graph_boolean  = st.radio('Generate FCM graph', ['No', 'Yes'], index = 0, horizontal = True)
+            if graph_boolean == 'Yes':
+                graph(edited_matrix, True)
+            matrix_exist = True
+            edited_matrix = defuzzification_single(edited_matrix, dic_final)
+            st.dataframe(edited_matrix)
+            graph_boolean_defuz  = st.radio('Generate FCM graph (Defuzzified)', ['No', 'Yes'], index = 0, horizontal = True)
+            if graph_boolean_defuz == 'Yes':
+                graph(edited_matrix, False)
+
+# Code for tab inference
 with tab_inference:
     if matrix_exist:
         
@@ -56,9 +77,6 @@ with tab_inference:
             fcm = FCM_numpy(initial_vector, edited_matrix, num_iter, equilibrium, activation_text, rule_text, l, b)
             if button:
                 inference = fcm.inference()
-                # for i, n in enumerate(inference):
-                #     print(i,np.round(n, 4))
-                # print('\n')
                 placeholder = inference_results(inference)
                 button_clear = st.button('Clear')
                 if button_clear:

@@ -30,13 +30,19 @@ dic_final = {
 
 }
 
+dic_deffuz = {
+    'Centroid' : 'centroid',
+    'Bisector' : 'bisector',
+    'Mean of Maximum (MoM)' : 'mom'
+
+}
 
     
 def fuzzy_sets():
     '''
     The streamlit widgets for creating fuzzy sets
     It utilizes two functions from within this module to initialize and modify the mf's parameters.
-    It returns two dictionairies that contain 1) the mfs arrays and 2) a dictionairy that contains all the necessary information for rebuilding the fuzzy sets
+    It returns a dictionairy that contains all the necessary information for rebuilding the fuzzy sets
     '''
     st.subheader('Define fuzzy sets', divider = 'green')
     #do popup containers
@@ -45,8 +51,8 @@ def fuzzy_sets():
         membership = st.selectbox('Select Membership Function', ['Triangular', 'Trapezoidal', 'Gaussian'], index = 0)
         st.write('$\\mathbb{U} = [-1, 1]$')
         dic = initialize_fuzzy_memberships(dic_variables[num_fuzzy_variables], membership)
-        mfs_dic, final_dic = modify_fuzzy_memberships(dic)
-    return mfs_dic, final_dic
+        final_dic = modify_fuzzy_memberships(dic)
+    return final_dic
 
 
 # def fuzzy_sets():
@@ -123,6 +129,8 @@ def initialize_fuzzy_memberships(memberships, method):
 def modify_fuzzy_memberships(initialized_dic):
     '''
     This function contains widgets to modify the fuzzy memberships
+    Returns:
+        a dictionairy that contains all the necessary information for rebuilding the fuzzy set, with keys = ['method', 'range', 'step', 'memberships']
     '''
     col1, col2 = st.columns(2)
     method = initialized_dic['method']
@@ -188,7 +196,7 @@ def modify_fuzzy_memberships(initialized_dic):
             "fuzzy_info.json",
             mime="application/json",
         )
-    return mfs, new_dic
+    return new_dic
 
          
 
@@ -215,14 +223,45 @@ def manual_tab_linguistic(dic):
 
 
         
-        
+def defuzzification_single(edited_matrix, final_dic):
+    '''
+    Defuzzifies the weight matrix based on the centroid method. No other methods are implemented due to no aggregation 
+    '''
+    st.subheader('Deffuzification of weight matrix', divider='blue')
+    deffuzification_method = st.selectbox('Select the defuzzification method', ['Centroid', 'Bisector', 'Mean of Maximum (MoM)'])
 
-        # weight_matrix_df = create_weight_matrix(num_concepts, edited_columns.values.tolist())
-        
-        # edited_matrix = st.data_editor(weight_matrix_df.style.apply(highlight_diagonal, axis=None), hide_index=True, disabled = ['-'], column_config=fix_configs(weight_matrix_df))
-        # edited_matrix.set_index('-', inplace = True)
-        # edited_matrix = edited_matrix.astype(float)
-        
-    #     return edited_matrix, True
-    # else:
-    #     return None, False
+    new_matrix = np.zeros(edited_matrix.shape)
+    columns = edited_matrix.columns
+    
+    mfs = _create_mfs_dic(final_dic)
+
+
+    for i, col in enumerate(edited_matrix.columns):
+        for ii, col2 in enumerate(edited_matrix.columns):
+            new_matrix[i, ii] = skfuzzy.defuzz(mfs['array'], mfs[edited_matrix.iloc[i, ii]], dic_deffuz[deffuzification_method])
+    df_matrix = pd.DataFrame(new_matrix, columns=columns, index = columns).round(2)
+    return df_matrix
+    
+
+    
+    
+
+def _create_mfs_dic(final_dic):
+    '''
+    function to create a dictionairy that contains the mfs arrays.
+    Returns:
+        __dict__ : keys = [mf1, mf2, ..., mfn], values = [array1, array2]
+    '''
+    method = final_dic['method']
+    array = np.linspace(final_dic['range'][0], final_dic['range'][-1], int((final_dic['range'][-1]-final_dic['range'][0])/final_dic['step']))
+    mfs = {}
+
+    for mf in final_dic['memberships'].keys():
+        if method == 'Triangular':
+            mfs[mf] = skfuzzy.trimf(array, final_dic['memberships'][mf])
+        elif method == 'Trapezoidal':
+            mfs[mf] = skfuzzy.trapmf(array, final_dic['memberships'][mf])
+        elif method == 'Gaussian':
+            mfs[mf] = skfuzzy.gaussmf(array, final_dic['memberships'][mf][0],final_dic['memberships'][mf][-1] )
+    mfs['array'] = array
+    return mfs
