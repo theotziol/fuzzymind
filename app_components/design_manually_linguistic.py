@@ -37,42 +37,25 @@ dic_deffuz = {
 
 }
 
-    
+## Design manually tab main function
 def fuzzy_sets():
     '''
     The streamlit widgets for creating fuzzy sets
     It utilizes two functions from within this module to initialize and modify the mf's parameters.
     It returns a dictionairy that contains all the necessary information for rebuilding the fuzzy sets
     '''
-    st.subheader('Define fuzzy sets', divider = 'green')
+    st.subheader('Define fuzzy sets for the causality', divider = 'green')
     #do popup containers
-    num_fuzzy_variables = st.radio('Select fuzzy variables', [5, 7, 11], captions=[dic_variables_caption[i] for i in dic_variables_caption.keys()])
+    num_fuzzy_variables = st.radio('Select fuzzy variables', [5, 7, 11], captions=[dic_variables_caption[i].replace(' ', '\n') for i in dic_variables_caption.keys()], horizontal= True)
     with st.expander('Modify Parameters...'):
-        membership = st.selectbox('Select Membership Function', ['Triangular', 'Trapezoidal', 'Gaussian'], index = 0)
+        membership = st.selectbox('Select the type of membership Function', ['Triangular', 'Trapezoidal', 'Gaussian'], index = 0)
         st.write('$\\mathbb{U} = [-1, 1]$')
         dic = initialize_fuzzy_memberships(dic_variables[num_fuzzy_variables], membership)
         final_dic = modify_fuzzy_memberships(dic)
     return final_dic
 
-
-# def fuzzy_sets():
-#     '''
-#     The streamlit widgets for creating fuzzy sets
-#     It utilizes two functions from within this module to initialize and modify the mf's parameters.
-#     It returns two dictionairies that contain 1) the mfs arrays and 2) a dictionairy that contains all the necessary information for rebuilding the fuzzy sets
-#     '''
-#     st.subheader('Define fuzzy sets', divider = 'green')
-#     num_fuzzy_variables = st.radio('Select fuzzy variables', [5, 7, 11], captions=[dic_variables_caption[i] for i in dic_variables_caption.keys()])
-#     with st.expander('Modify Parameters...'):
-#         membership = st.selectbox('Select Membership Function', ['Triangular', 'Trapezoidal', 'Gaussian'], index = 0)
-#         st.write('$\\mathbb{U} = [-1, 1]$')
-#         dic = initialize_fuzzy_memberships(dic_variables[num_fuzzy_variables], membership)
-#         mfs_dic, final_dic = modify_fuzzy_memberships(dic)
-#     return mfs_dic, final_dic
-        
-
                
-
+@st.cache_data
 def initialize_fuzzy_memberships(memberships, method):
     '''
     This function initializes the parameters of the fuzzy memberhsips. 
@@ -243,9 +226,9 @@ def defuzzification_single(edited_matrix, final_dic):
     return df_matrix
     
 
-    
-    
 
+    
+@st.cache_data
 def _create_mfs_dic(final_dic):
     '''
     function to create a dictionairy that contains the mfs arrays.
@@ -265,3 +248,45 @@ def _create_mfs_dic(final_dic):
             mfs[mf] = skfuzzy.gaussmf(array, final_dic['memberships'][mf][0],final_dic['memberships'][mf][-1] )
     mfs['array'] = array
     return mfs
+
+
+### Knowledge aggregation function
+@st.cache_data
+def aggregation_info(dic_uploads):
+    '''
+    This function aims to provide info regarding the aggregation by:
+
+        1) returning a pd.DataFrame with the total concepts that were passed 
+        2) returning a single pd.DataFrame where each cell unifies the linguistic values that were given in the uploaded files.
+        3) returning the total files that were examined
+
+
+    '''
+    pairs = [i for i in dic_uploads.keys() if dic_uploads[i] != None] #None value is passed when an uploaded file failed to be readen
+    total_unique_concepts = []
+    for key in pairs:
+        concepts = dic_uploads[key][0].columns 
+        for i in concepts:
+            if i not in total_unique_concepts:
+                total_unique_concepts.append(i)
+
+    df_columns = pd.DataFrame([total_unique_concepts], columns = [f'C{i}' for i in range(len(total_unique_concepts))])
+
+    dictionairy = dict.fromkeys(
+        [i for i in total_unique_concepts], dict.fromkeys([i for i in total_unique_concepts], [])
+        )
+    
+    # for key in pairs:
+    #     matrix = dic_uploads[key][0]
+    #     print(matrix)
+    #     for con_row in matrix.columns:
+    #         for con_column in matrix.columns:
+    #             dictionairy[con_row][con_column].append(matrix.loc[con_row][con_column])
+    #             print('\n\n', dictionairy)
+    #             break
+    #     break
+    #does not work
+    
+            
+            
+

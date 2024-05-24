@@ -44,10 +44,15 @@ with tab_design:
                 graph(edited_matrix, True)
             matrix_exist = True
             edited_matrix = defuzzification_single(edited_matrix, dic_final)
+            st.caption('Deffuzzified weight matrix')
             st.dataframe(edited_matrix)
             graph_boolean_defuz  = st.radio('Generate FCM graph (Defuzzified)', ['No', 'Yes'], index = 0, horizontal = True)
             if graph_boolean_defuz == 'Yes':
                 graph(edited_matrix, False)
+            # file_name = st.text_input('Download as...', 'file1', max_chars=15)
+            # st.download_button('Download matrix as csv', data= convert_df(edited_matrix), file_name=file_name + '.csv', mime="text/csv")
+            # st.download_button('Download fuzzy mfs as json', data= convert_df(edited_matrix), file_name=file_name + '.json', mime="text/csv")
+
 
     elif mode == 'File Upload':
         edited_matrix, file, dic_final = matrix_upload()
@@ -59,10 +64,18 @@ with tab_design:
                 graph(edited_matrix, True)
             matrix_exist = True
             edited_matrix = defuzzification_single(edited_matrix, dic_final)
+            st.caption('Deffuzzified weight matrix')
             st.dataframe(edited_matrix)
             graph_boolean_defuz  = st.radio('Generate FCM graph (Defuzzified)', ['No', 'Yes'], index = 0, horizontal = True)
             if graph_boolean_defuz == 'Yes':
                 graph(edited_matrix, False)
+
+    elif mode == 'Knowledge Aggregation':
+        dic_uploads = matrices_upload()
+        if dic_uploads is not None:
+            aggregation_info(dic_uploads)
+    
+        
 
 # Code for tab inference
 with tab_inference:

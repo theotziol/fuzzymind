@@ -19,7 +19,7 @@ st.set_page_config(
 
 st.write("# FCM-app! 👋")
 
-st.sidebar.success("Select a tool aboove.")
+# st.sidebar.success("Select a tool aboove.")
 
 st.markdown(
     """
