@@ -73,7 +73,7 @@ with tab_design:
     elif mode == 'Knowledge Aggregation':
         dic_uploads = matrices_upload()
         if dic_uploads is not None:
-            aggregation_info(dic_uploads)
+            aggregation_info_display(dic_uploads)
     
         
 

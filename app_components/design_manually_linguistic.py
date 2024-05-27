@@ -251,6 +251,29 @@ def _create_mfs_dic(final_dic):
 
 
 ### Knowledge aggregation function
+
+def aggregation_info_display(dic_uploads):
+    '''
+    This component displays the aggregation info of the uploaded matrices     
+    '''
+    with st.expander('Aggregation info'):
+        total_concepts, combined_df, succesfull_pairs, mfs_list = aggregation_info(dic_uploads)
+        st.caption('Total defined concepts')
+        st.dataframe(total_concepts, hide_index= True)
+        st.caption(f'**The aggregation matrix**. Each cell contains the linguistic variables that were given per expert/stakeholder and found in {succesfull_pairs}. \
+            **Undefined** indicates that no variable was passed in the corresponding file for this connection.')
+        st.dataframe(combined_df)
+        for i, mf_dic in enumerate(mfs_list):
+            
+            to_plot = dc(mf_dic) # create a deep copy to pop the array key that has no plotting meaning
+            index = to_plot.pop('array')
+            df = pd.DataFrame(to_plot, index = index) 
+            st.caption(f"Fuzzy MFs based on the expert's opinion found in '{succesfull_pairs[i]}' files")
+            st.line_chart(df)
+        
+
+
+        
 @st.cache_data
 def aggregation_info(dic_uploads):
     '''
@@ -258,34 +281,38 @@ def aggregation_info(dic_uploads):
 
         1) returning a pd.DataFrame with the total concepts that were passed 
         2) returning a single pd.DataFrame where each cell unifies the linguistic values that were given in the uploaded files.
-        3) returning the total files that were examined
-
+        3) returning a list of the paired files.
+        4) returning a list of mfs dics.
 
     '''
     pairs = [i for i in dic_uploads.keys() if dic_uploads[i] != None] #None value is passed when an uploaded file failed to be readen
     total_unique_concepts = []
+    mfs_list = []
     for key in pairs:
-        concepts = dic_uploads[key][0].columns 
+        concepts = dic_uploads[key][0].columns
+        mfs_info_dic =  dic_uploads[key][1]
+        mfs_list.append(_create_mfs_dic(mfs_info_dic))
         for i in concepts:
             if i not in total_unique_concepts:
                 total_unique_concepts.append(i)
 
     df_columns = pd.DataFrame([total_unique_concepts], columns = [f'C{i}' for i in range(len(total_unique_concepts))])
 
-    dictionairy = dict.fromkeys(
-        [i for i in total_unique_concepts], dict.fromkeys([i for i in total_unique_concepts], [])
-        )
+    df = pd.DataFrame(np.empty((len(total_unique_concepts), len(total_unique_concepts))),index = total_unique_concepts, columns=total_unique_concepts)
+    combined_df = df.applymap(lambda x: [])
     
-    # for key in pairs:
-    #     matrix = dic_uploads[key][0]
-    #     print(matrix)
-    #     for con_row in matrix.columns:
-    #         for con_column in matrix.columns:
-    #             dictionairy[con_row][con_column].append(matrix.loc[con_row][con_column])
-    #             print('\n\n', dictionairy)
-    #             break
-    #     break
-    #does not work
+    for key in pairs:
+        matrix = dic_uploads[key][0]
+        # print(matrix)
+        for con_row in total_unique_concepts:
+            for con_column in total_unique_concepts:
+                if con_row not in list(matrix.columns) or con_column not in list(matrix.columns):
+                    combined_df.loc[con_row][con_column].append('Undefined')
+                else:
+                    combined_df.loc[con_row][con_column].append(matrix.loc[con_row][con_column])
+
+                
+    return df_columns, combined_df, pairs, mfs_list
     
             
             

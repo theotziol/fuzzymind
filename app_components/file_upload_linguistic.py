@@ -42,7 +42,7 @@ def matrix_upload():
         dataframe: pd.DataFrame of the weight matrix
     '''
     st.info(compatibility_info)
-    with st.expander('Upload'):
+    with st.expander('Upload files...'):
         col1, col2 = st.columns(2, gap = 'medium')
 
         with col1:
@@ -50,7 +50,6 @@ def matrix_upload():
             fuzzy_variables_file = st.file_uploader('Upload a .json file of the membership functions', type = 'json', help=load_widget_json_help)
         if weight_matrix_file is not None:
             with col2:
-                st.subheader('CSV parameters', divider = 'gray')
                 delimiter = st.radio("Select file's delimiter", [',', '.', ';'],
                                     index = 0,
                                     captions = ['Comma (default)', 'Full Stop (dot)', 'Semicolon'], horizontal = True)
@@ -86,7 +85,7 @@ def matrices_upload():
         
     '''
     st.info(compatibility_info)
-    with st.expander('Upload'):
+    with st.expander('Upload files...'):
         st.info(basic_info)
         col1, col2 = st.columns(2, gap = 'medium')
         with col1:
@@ -95,7 +94,6 @@ def matrices_upload():
         if len(weight_matrix_files) > 0 and len(fuzzy_variables_files) > 0:
             pairs_boolean = check_uploads(weight_matrix_files, fuzzy_variables_files)
             with col2:
-                st.subheader('CSV parameters', divider = 'gray')
                 delimiter = st.radio("Select files' delimiter", [',', '.', ';'],
                                     index = 0,
                                     captions = ['Comma (default)', 'Full Stop (dot)', 'Semicolon'], horizontal = True)
