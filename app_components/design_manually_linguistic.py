@@ -208,7 +208,7 @@ def manual_tab_linguistic(dic):
         
 def defuzzification_single(edited_matrix, final_dic):
     '''
-    Defuzzifies the weight matrix based on the centroid method. No other methods are implemented due to no aggregation 
+    Defuzzifies the weight matrix.
     '''
     st.subheader('Deffuzification of weight matrix', divider='blue')
     deffuzification_method = st.selectbox('Select the defuzzification method', ['Centroid', 'Bisector', 'Mean of Maximum (MoM)'])
@@ -256,7 +256,7 @@ def aggregation_info_display(dic_uploads):
     '''
     This component displays the aggregation info of the uploaded matrices     
     '''
-    with st.expander('Aggregation info'):
+    with st.expander('Aggregation info...'):
         total_concepts, combined_df, succesfull_pairs, mfs_list = aggregation_info(dic_uploads)
         st.caption('Total defined concepts')
         st.dataframe(total_concepts, hide_index= True)
@@ -270,8 +270,53 @@ def aggregation_info_display(dic_uploads):
             df = pd.DataFrame(to_plot, index = index) 
             st.caption(f"Fuzzy MFs based on the expert's opinion found in '{succesfull_pairs[i]}' files")
             st.line_chart(df)
-        
+        # st.line_chart(np.fmax(df['-High'], df['-Medium']))
+        dummy_df, stored_mfs = aggregate(combined_df, mfs_list)
+        st.caption('Check the aggregated membership functions')
+        col1, col2 = st.columns(2)
+        with col1:
+            concept1 = st.selectbox("Select the first concept", dummy_df.columns, index = None)
+        with col2:
+            concept2 = st.selectbox("Select the second concept", dummy_df.columns, index = None)
+        if concept1 != None and concept2 != None:
+            index = dummy_df.loc[concept1][concept2]
+            st.caption('Suggested by experts membership functions')
+            ignore = ['array', 'aggregated']
+            dfs = []
+            for key in stored_mfs[index].keys():
+                if key not in ignore:
+                    df = pd.DataFrame(stored_mfs[index][key], index = stored_mfs[index]['array'])
+                    dfs.append(df)
+            for df in dfs:
+                st.line_chart(df)
 
+            st.caption('Aggregated membership function')
+            df_aggr = pd.DataFrame(stored_mfs[index]['aggregated'], index = stored_mfs[index]['array'])
+            st.line_chart(df_aggr, color = (220, 0, 10))
+    return dummy_df, stored_mfs
+
+
+def deffuzification_widgets(dummy_df, stored_mfs):
+    '''
+    Provides the widgets for the deffuzification. Returns the deffuzified weight matrix.
+    '''
+    st.subheader('Deffuzification of weight matrix', divider='blue')
+    deffuzification_method = st.selectbox('Select the defuzzification method', ['Centroid', 'Bisector', 'Mean of Maximum (MoM)'])
+    deffuzified_matrix = deffuzzify_aggregated(dummy_df, stored_mfs, deffuzification_method)
+    st.caption('Deffuzified matrix')
+    st.dataframe(deffuzified_matrix)
+    return deffuzified_matrix
+
+@st.cache_data
+def deffuzzify_aggregated(dummy_df, stored_mfs, deffuzification_method):
+    columns = dummy_df.columns
+    deffuzified_matrix = pd.DataFrame(np.zeros(dummy_df.shape), columns = columns, index = columns)
+    for row in columns:
+        for col in columns:
+            index = dummy_df.loc[row][col]
+            deffuzified_matrix.loc[row][col] = skfuzzy.defuzz(stored_mfs[index]['array'], stored_mfs[index]['aggregated'], dic_deffuz[deffuzification_method])
+    deffuzified_matrix = deffuzified_matrix.round(2)
+    return deffuzified_matrix
 
         
 @st.cache_data
@@ -316,4 +361,36 @@ def aggregation_info(dic_uploads):
     
             
             
+@st.cache_data
+def aggregate(df_matrix, mfs, undefined = 'Undefined'):
+    '''
+    This function aggregates the mfs. Initially, a new (dummy) dataframe is created that each cell value has an incremental integer which corresponds to a key in a dictionairy.
+    The dictionairy stores the initial mfs and the aggregated mf for visualization purposes. 
+    '''
+    columns = df_matrix.columns
+    dummy_array = [i+1 for i in range(len(columns)*len(columns))]
+    stored_mfs = {key + 1: {} for key in range(len(columns)*len(columns))}
+    dummy_array = np.array(dummy_array).reshape((len(columns), len(columns)))
+    dummy_df = pd.DataFrame(dummy_array, columns = columns, index = columns)
+    print(stored_mfs)
 
+    for row in columns:
+        for column in columns:
+            values = df_matrix.loc[row][column]
+            index = dummy_df.loc[row][column]
+            vals_keys = []
+            
+            for i, val in enumerate(values):
+                if val == undefined:
+                    continue
+                else:
+                    stored_mfs[index]['array'] = mfs[i]['array']
+                    stored_mfs[index][val] = mfs[i][val]
+                    vals_keys.append(val)
+
+            aggregated = stored_mfs[index][vals_keys[0]]
+            if len(vals_keys) > 1:
+                for i in range(len(vals_keys)-1):
+                    aggregated = np.fmax(aggregated, stored_mfs[index][vals_keys[i+1]])
+            stored_mfs[index]['aggregated'] = aggregated
+    return dummy_df, stored_mfs

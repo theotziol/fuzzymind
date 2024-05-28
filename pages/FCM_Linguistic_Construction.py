@@ -73,7 +73,13 @@ with tab_design:
     elif mode == 'Knowledge Aggregation':
         dic_uploads = matrices_upload()
         if dic_uploads is not None:
-            aggregation_info_display(dic_uploads)
+           dummy_df, stored_mfs = aggregation_info_display(dic_uploads)
+           edited_matrix = deffuzification_widgets(dummy_df, stored_mfs)
+           matrix_exist = True
+           graph_boolean  = st.radio('Generate FCM graph (Defuzzified)', ['No', 'Yes'], index = 0, horizontal = True)
+           if graph_boolean == 'Yes':
+                graph(edited_matrix)
+
     
         
 
