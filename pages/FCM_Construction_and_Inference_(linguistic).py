@@ -23,7 +23,7 @@ st.set_page_config(
         }
         )
 
-st.sidebar.success("Select a tool above.")
+
 st.title('FCM Linguistic Construction and Inference')
 st.header('Construct an FCM based on linguistic variables and fuzzy sets theory.', divider = 'blue')
 

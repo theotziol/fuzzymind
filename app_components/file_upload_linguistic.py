@@ -67,13 +67,13 @@ def matrix_upload():
         else:
             dataframe = None
         
-        if fuzzy_variables_file is not None:
-            dic = json.load(fuzzy_variables_file)
-            with st.expander('Modify mfs parameters...'):
-                final_dic = modify_fuzzy_memberships(dic)
-        else:
-            st.write("No '.json' file is uploaded")
-            final_dic = None
+    if fuzzy_variables_file is not None:
+        dic = json.load(fuzzy_variables_file)
+        with st.expander('Modify mfs parameters...'):
+            final_dic = modify_fuzzy_memberships(dic)
+    else:
+        st.write("No '.json' file is uploaded")
+        final_dic = None
 
     return dataframe, weight_matrix_file, final_dic
 
