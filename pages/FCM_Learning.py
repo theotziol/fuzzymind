@@ -23,40 +23,30 @@ st.title('FCM Learning 🎓')
 st.header('Construct an FCM based on data', divider = 'blue')
 
 
-option = st.sidebar.radio('Select task', ['Classification', 'Regression'], help=help_task)
-st.sidebar.success(f' You selected the {option} learning')
 
 tab1, tab2, tab3 = st.tabs(['Data', 'Preprocessing', 'Learning'])
 
-track_changes_limit = 500
-track_changes_initial = 0
-
-if 'track_changes_df' not in st.session_state:
-    st.session_state.track_changes_df = track_changes_initial
-
-
+if 'uploaded' not in st.session_state.keys():
+    st.session_state.uploaded = False
+    
 
 with tab1:
-    csv, df = upload_widgets()
+    csv = upload_widgets()
     ### Currently there is an issue with saving the dictionairy
     if csv is not None:
-        #use state to save dictionairies
-        if 'initial_df' not in st.session_state:
-            st.session_state.initial_df = df.copy()
-        
-        if 'processed_df' not in st.session_state:
-            st.session_state.processed_df = df.copy()
-    
-        st.session_state.processed_df = modify_dataset(df)
-        df = st.session_state.processed_df.copy()
+        if st.session_state.uploaded == True:
+            st.sidebar.success(f'The {csv.name} file has been succesfully imported')
+            modify_dataset()
+        else:
+            st.sidebar.info('Import data to continue', icon="ℹ️")
 
 
     else:
-        if 'initial_df' in st.session_state:
-            del st.session_state['initial_df']
+        if st.session_state.uploaded == True:
+            st.session_state.uploaded == False
+        else:
+            st.sidebar.info('Import data to continue', icon="ℹ️")
         
-        if 'processed_df' in st.session_state:
-            del st.session_state.processed_df
 
 
         
