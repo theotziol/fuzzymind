@@ -4,6 +4,7 @@ import sys
 sys.path.insert(1, '../fcm_codes')
 sys.path.insert(1, '../app_components')
 from app_components.data_upload import *
+from app_components.preprocessing_tab import *
 
 st.set_page_config(
     page_title = 'FCM Learning',
@@ -24,28 +25,45 @@ st.header('Construct an FCM based on data', divider = 'blue')
 
 
 
-tab1, tab2, tab3 = st.tabs(['Data', 'Preprocessing', 'Learning'])
+data_tab, preprocessing_tab, learning_tab = st.tabs(['Data', 'Preprocessing', 'Learning'])
 
 if 'uploaded' not in st.session_state.keys():
     st.session_state.uploaded = False
     
 
-with tab1:
+with data_tab:
     csv = upload_widgets()
     ### Currently there is an issue with saving the dictionairy
     if csv is not None:
         if st.session_state.uploaded == True:
             st.sidebar.success(f'The {csv.name} file has been succesfully imported')
             modify_dataset()
+            plot_widgets()
         else:
             st.sidebar.info('Import data to continue', icon="ℹ️")
 
 
     else:
-        if st.session_state.uploaded == True:
-            st.session_state.uploaded == False
-        else:
-            st.sidebar.info('Import data to continue', icon="ℹ️")
+        st.session_state.uploaded = False
+        if 'working_df' in st.session_state.keys():
+            del st.session_state.working_df
+        
+        
+        st.sidebar.info('Import data to continue', icon="ℹ️")
+
+with preprocessing_tab:
+    if st.session_state.uploaded:
+        tab_cleansing, tab_transf, tab_norm, tab_split = st.tabs(["📈 Data Cleansing", "🔨 Data Transformation", '⚖️ Data normalization', '✂️ Data Split'])
+        with tab_cleansing:
+            datacleansing_widgets()
+    else:
+        st.markdown(
+        """
+        👆 Use the **Data** tab to upload and import a dataset for learning.
+        # ⛔ This tab will be accesible after data importing. ⛔ 
+        """
+        )
+
         
 
 

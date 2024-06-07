@@ -11,7 +11,7 @@ def non_matrix_definition():
         """
         Use the **FCM Design** 👆 tab to construct an FCM either manually,
         or by uploading file that contains a weight matrix for FCM definition.
-        # ⛔ This tab will be accesible after the FCM construction.  
+        # ⛔ This tab will be accesible after the FCM construction. ⛔ 
         """
     )
 
