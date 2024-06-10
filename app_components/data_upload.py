@@ -18,8 +18,8 @@ helps = {
 }
 
 
-def upload_widgets(): 
-    csv = st.file_uploader('Upload a dataset as ".csv" file', type = 'csv', help=helps['csv'])
+def upload_widgets():
+    csv = st.file_uploader('Upload a dataset as ".csv" file', type = 'csv', help=helps['csv']) 
     if csv is not None:
         with st.expander('CSV options', not st.session_state.uploaded):
             # st.subheader('CSV options', divider='gray')
@@ -99,8 +99,7 @@ def modify_dataset():
                 submit_index = st.button('Submit', key = 'submit index', on_click=submit_index_callback, args = (index_column,))
             convert_to_datetime = st.button('Convert current index to datetime', key = 'convert_datetime', on_click=to_datetime_index_callback, help=helps['datetime'])
 
-            
-                
+
     with col3:
         with st.popover('Delete columns'):
             to_delete = st.multiselect('Select column(s)', df_processed.columns)
