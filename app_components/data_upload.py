@@ -61,10 +61,10 @@ def upload_widgets():
 
             show_info = st.toggle('Show dataset info')
             if show_info:
-                c1, c2 = st.columns(2)
-                with c1:
+                t1, t2 = st.tabs(['📊 Dataset statistics', '🔍 Generic info'])
+                with t1:
                     st.write(df.describe())
-                with c2:
+                with t2:
                     buffer = io.StringIO()
                     df.info(buf=buffer)
                     s = buffer.getvalue()
@@ -112,39 +112,10 @@ def modify_dataset():
     if show_dataframe:
         st.dataframe(df_processed)
     if st.session_state.changed:
-        restore_button = st.button('Restore changes', key = 'restore', on_click=restore_df_changes_callback)
+        restore_button = st.button('Restore all changes', key = 'restore', on_click=restore_df_changes_callback)
     
 
-                
-def plot_widgets():
-    '''
-    This functions contains the widgets to plot the imported dataset
-    '''
-    st.subheader('Data visualization', divider = 'blue')
-    not_plotting = ('object', 'bool')
-    columns = [col for col in st.session_state.working_df.columns if col not in not_plotting]
-    
-    column = st.selectbox('Select a single column to plot', columns, None)
-    
-    if column is not None:
-        chart_type = st.selectbox('Select the chart type', ['Line', 'Area', 'Bar'])
-        plot_column(column, chart_type)  
 
-        
-
-    
-@st.cache_data
-def plot_column(column, chart_type):
-    try:
-        st.caption(f"{column} chart")
-        if chart_type == 'Line':
-            st.line_chart(st.session_state.working_df, y = column)
-        elif chart_type == 'Area':
-            st.area_chart(st.session_state.working_df, y = column)
-        else:
-            st.bar_chart(st.session_state.working_df, y = column)
-    except Exception as e:
-        st.warning(f"{e}", icon="⚠️")
 
 
                     

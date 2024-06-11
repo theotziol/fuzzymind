@@ -5,6 +5,7 @@ sys.path.insert(1, '../fcm_codes')
 sys.path.insert(1, '../app_components')
 from app_components.data_upload import *
 from app_components.preprocessing_tab import *
+from app_components.visualization_tab import *
 
 st.set_page_config(
     page_title = 'FCM Learning',
@@ -26,6 +27,7 @@ st.header('Construct an FCM based on data', divider = 'blue')
 
 if 'uploaded' not in st.session_state.keys():
     st.session_state.uploaded = False
+
 
 
 data_tab, data_visual, preprocessing_tab, learning_tab = st.tabs(['📂 Data Upload', '📈 Data Visualization', '⚙️ Data Preprocessing', '🧠 Learning'])
