@@ -19,6 +19,7 @@ helps = {
 
 
 def upload_widgets():
+    st.subheader('Data upload')
     csv = st.file_uploader('Upload a dataset as ".csv" file', type = 'csv', help=helps['csv']) 
     if csv is not None:
         with st.expander('CSV options', not st.session_state.uploaded):

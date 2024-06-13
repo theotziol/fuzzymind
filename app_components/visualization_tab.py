@@ -13,7 +13,7 @@ def plot_widgets():
     '''
     st.subheader('Data visualization', divider = 'blue')
     not_plotting = ('object', 'bool')
-    columns = [col for col in st.session_state.working_df.columns if col not in not_plotting]
+    columns = [col for col in st.session_state.working_df.columns if st.session_state.working_df[col].dtype.name not in not_plotting]
 
     chart_type = st.selectbox('Select the chart type', ['Line', 'Area', 'Bar', 'Boxplot', 'Histogram'])
     if chart_type == 'Boxplot':

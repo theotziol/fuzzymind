@@ -1,11 +1,14 @@
 import streamlit as st 
+import io
 
 import sys
 sys.path.insert(1, '../fcm_codes')
 sys.path.insert(1, '../app_components')
 from app_components.data_upload import *
-from app_components.preprocessing_tab import *
+from app_components.data_cleansing_tab import *
 from app_components.visualization_tab import *
+from app_components.data_transformation_tab import *
+from app_components.data_norm_tab import *
 
 st.set_page_config(
     page_title = 'FCM Learning',
@@ -64,10 +67,18 @@ with preprocessing_tab:
     if st.session_state.uploaded:
             
         tab_cleansing, tab_transf, tab_norm, tab_split = st.tabs(
-            ['🧹️ Data Cleansing', '🔨 Data Transformation', '⚖️ Data normalization', '✂️ Data Split']
+            ['🧹️ Data Cleansing', '🔨 Data Transformation', '⚖️ Data Normalization', '✂️ Data Split']
             ) 
         with tab_cleansing:
             datacleansing_widgets()
+        
+        with tab_transf:
+            transformation_widgets()
+
+        with tab_norm:
+            data_normalization()
+
+
     else:
         st.markdown(
         """
@@ -78,8 +89,29 @@ with preprocessing_tab:
 
         
 
+## sidebar df info
+if st.session_state.uploaded:
+    st.write('')
+    cl1, cl2 = st.columns(2)
+    
+    check_dataset = st.sidebar.toggle('See dataset')
+    
+    if check_dataset:
+        with cl1:
+            st.caption('Working dataset')
+            st.dataframe(st.session_state.working_df)
 
-        
+    dataset_info = st.sidebar.toggle('See dataset info')
+    if dataset_info:
+        with cl2:
+            t1, t2 = st.tabs(['📊 Dataset statistics', '🔍 Generic info'])
+            with t1:
+                st.write(st.session_state.working_df.describe())
+            with t2:
+                buffer = io.StringIO()
+                st.session_state.working_df.info(buf=buffer)
+                s = buffer.getvalue()
+                st.text(s)
 
 
 

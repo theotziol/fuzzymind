@@ -95,7 +95,7 @@ def nan_values():
                 delete_all_rows_button = st.button('Dischard rows', key = 'del_rows', on_click=submit_deletion_rows)
        
     else:
-        st.info('No nan values were found in dataset')
+        st.info('No NaN values were found in dataset')
     col1,col2,col3 = st.columns((0.3,0.4,0.3))
     with col2:
         buffer = io.StringIO()
@@ -105,7 +105,7 @@ def nan_values():
         
 def outlier_removal():
     st.subheader('Outlier removal', divider='gray')
-    with st.expander('Parameters...'):
+    with st.expander('Parameters...', expanded=False):
         st.info('Currently only statistic based removal is supported')
         not_plotting = ('object', 'bool')
         columns = [col for col in st.session_state.working_df.columns if col not in not_plotting]
