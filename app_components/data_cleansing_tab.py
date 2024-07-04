@@ -7,7 +7,7 @@ from app_components.data_upload import restore_df_changes_callback
 
 
 def datacleansing_widgets():
-    st.subheader('Data cleansing', divider='blue')
+    st.subheader('Data Cleansing', divider='blue')
     nan_values()
     outlier_removal()
     manual_proccess = st.toggle('Manual processing', help='Provides an editable table for proccesing tables cells manually')
@@ -140,9 +140,6 @@ def outlier_removal():
                     st.success(f'{len(outlier_indinces)} rows have been succesfully discarded from dataset')
                 
                 
-
-        
-
 
 
     

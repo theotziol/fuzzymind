@@ -1,6 +1,7 @@
 import streamlit as st 
 import io
 
+
 import sys
 sys.path.insert(1, '../fcm_codes')
 sys.path.insert(1, '../app_components')
@@ -9,6 +10,8 @@ from app_components.data_cleansing_tab import *
 from app_components.visualization_tab import *
 from app_components.data_transformation_tab import *
 from app_components.data_norm_tab import *
+from app_components.data_split_tab import *
+from app_components.learning_tab import *
 
 st.set_page_config(
     page_title = 'FCM Learning',
@@ -33,6 +36,7 @@ if 'uploaded' not in st.session_state.keys():
 
 
 
+
 data_tab, data_visual, preprocessing_tab, learning_tab = st.tabs(['📂 Data Upload', '📈 Data Visualization', '⚙️ Data Preprocessing', '🧠 Learning'])
 
 with data_tab:
@@ -51,13 +55,40 @@ with data_tab:
         
         st.sidebar.info('Import data to continue', icon="ℹ️")
 
+## sidebar df info
+if st.session_state.uploaded:
+    st.write('')
+    
+    st.sidebar.write('')
+    st.sidebar.radio('Select task', ['Classification', 'Regression'], key = 'learning_task', help=help_task)
+    st.sidebar.info(f'You selected {st.session_state.learning_task}')
+
+    st.sidebar.write('')
+    st.sidebar.write('')
+
+    check_dataset = st.sidebar.toggle('Show dataset')
+
+    if check_dataset:
+
+        t1, t2, t3 = st.tabs(['📃 Dataset', '📊 Dataset statistics', '🔍 Generic info'])
+        with t1:
+            st.caption('Working dataset')
+            st.dataframe(st.session_state.working_df)
+        with t2:
+            st.write(st.session_state.working_df.describe())
+        with t3:
+            buffer = io.StringIO()
+            st.session_state.working_df.info(buf=buffer)
+            s = buffer.getvalue()
+            st.text(s)
+
 with data_visual:
     if st.session_state.uploaded:
         plot_widgets()
     else:
         st.markdown(
         """
-        👆 Use the **Data** tab to upload and import a dataset for learning.
+        👆 Use the **📂 Data Upload** tab to upload and import a dataset for learning.
         # ⛔ This tab will be accesible after data importing. ⛔ 
         """
         )
@@ -78,40 +109,37 @@ with preprocessing_tab:
         with tab_norm:
             data_normalization()
 
+        with tab_split:
+            spliting_widgets()
+        
+        if st.session_state.changed:
+            c_1, c_2, c_3 = st.columns(3)
+            with c_3:
+                st.write('')
+                restore = st.button('Restore all changes', key = 'restored_changes', on_click=restore_df_changes_callback, help = 'This button will discard all the applied preprocessing methods, returning back the raw imported data')
+
 
     else:
         st.markdown(
         """
-        👆 Use the **Data** tab to upload and import a dataset for learning.
-        # ⛔ This tab will be accesible after data importing. ⛔ 
+        👆 Use the **📂 Data Upload** tab to upload and import a dataset for learning.
+        # ⛔ This tab will be accesible after data importing. 
         """
         )
 
         
 
-## sidebar df info
-if st.session_state.uploaded:
-    st.write('')
-    cl1, cl2 = st.columns(2)
-    
-    check_dataset = st.sidebar.toggle('See dataset')
-    
-    if check_dataset:
-        with cl1:
-            st.caption('Working dataset')
-            st.dataframe(st.session_state.working_df)
-
-    dataset_info = st.sidebar.toggle('See dataset info')
-    if dataset_info:
-        with cl2:
-            t1, t2 = st.tabs(['📊 Dataset statistics', '🔍 Generic info'])
-            with t1:
-                st.write(st.session_state.working_df.describe())
-            with t2:
-                buffer = io.StringIO()
-                st.session_state.working_df.info(buf=buffer)
-                s = buffer.getvalue()
-                st.text(s)
 
 
 
+
+with learning_tab:
+    if st.session_state.uploaded:
+        learning_method_widgets()
+    else:
+        st.markdown(
+        """
+        👆 Use the **📂 Data Upload** tab to upload and import a dataset for learning.
+        # ⛔ This tab will be accesible after data importing. 
+        """
+        )

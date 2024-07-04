@@ -57,8 +57,10 @@ def upload_widgets():
                         if st.session_state['date_columns']:
                             df = read_csv(csv, delimiter = delimiter, decimal = decimal, na_values = na_values_list, parse_dates=[combine_index_cols])
 
-            st.caption(f'{csv.name} dataset')
-            st.dataframe(df)
+            c1, c2 , c3 = st.columns([0.2, 0.6, 0.3])
+            with c2:
+                st.caption(f'{csv.name} dataset')
+                st.dataframe(df)
 
             show_info = st.toggle('Show dataset info')
             if show_info:
@@ -108,15 +110,7 @@ def modify_dataset():
                 st.write(f'You selected {to_delete} to be deleted!')
                 submit_deletion = st.button('Submit', key = 'submit_deletion',on_click=submit_deletion_callback, args = (to_delete, ) )
 
-                
-    show_dataframe = st.toggle('Show dataset')
-    if show_dataframe:
-        st.dataframe(df_processed)
-    if st.session_state.changed:
-        restore_button = st.button('Restore all changes', key = 'restore', on_click=restore_df_changes_callback)
     
-
-
 
 
                     
