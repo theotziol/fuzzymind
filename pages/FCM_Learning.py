@@ -24,15 +24,27 @@ st.set_page_config(
         }
         )
 
-help_task = "Use the classification option if your FCM will categorize your data into distinct classes. \
-    \nUse the regression option if your FCM will try to predict a continuous variable."
+help_task = "Use the **classification** option if your FCM will categorize your data into distinct classes. \
+    \nUse the **Timeseries forecasting** option if your dataset aims to forecast a value based on historical measurements\
+    \nUse the **Regression** option if your FCM will try to predict a continuous variable.\
+    \n\nThe difference between **Timeseries forecasting** and **Regression** is in the **formatting of the input dataset**. \
+    Timeseries forecasting assumes that previous measumenents affect future values. \
+        Thus, it utilizes historical timesteps as concepts to forecast future timesteps and reshapes the dataset so that the input $f(y^{t1}) = x^{t0} + y^{t0}$"
 
 st.title('FCM Learning 🎓')
 st.header('Construct an FCM based on data', divider = 'blue')
 
-
+### This session state variable indicates that a dataset has been uploaded
 if 'uploaded' not in st.session_state.keys():
     st.session_state.uploaded = False
+
+### This session state variable indicates that a dataset has preprocessed and is ready for learning
+if 'initialized_preprocessing' not in st.session_state.keys():
+    st.session_state.initialized_preprocessing = False
+
+### This session state variable indicates that a training is completed
+if 'training_finished' not in st.session_state.keys():
+    st.session_state.training_finished = False
 
 
 
@@ -49,38 +61,14 @@ with data_tab:
             
     else:
         st.session_state.uploaded = False
+        st.session_state.initialized_preprocessing = False
         if 'working_df' in st.session_state.keys():
             del st.session_state.working_df
         
         
         st.sidebar.info('Import data to continue', icon="ℹ️")
 
-## sidebar df info
-if st.session_state.uploaded:
-    st.write('')
-    
-    st.sidebar.write('')
-    st.sidebar.radio('Select task', ['Classification', 'Regression'], key = 'learning_task', help=help_task)
-    st.sidebar.info(f'You selected {st.session_state.learning_task}')
 
-    st.sidebar.write('')
-    st.sidebar.write('')
-
-    check_dataset = st.sidebar.toggle('Show dataset')
-
-    if check_dataset:
-
-        t1, t2, t3 = st.tabs(['📃 Dataset', '📊 Dataset statistics', '🔍 Generic info'])
-        with t1:
-            st.caption('Working dataset')
-            st.dataframe(st.session_state.working_df)
-        with t2:
-            st.write(st.session_state.working_df.describe())
-        with t3:
-            buffer = io.StringIO()
-            st.session_state.working_df.info(buf=buffer)
-            s = buffer.getvalue()
-            st.text(s)
 
 with data_visual:
     if st.session_state.uploaded:
@@ -96,7 +84,8 @@ with data_visual:
 
 with preprocessing_tab:
     if st.session_state.uploaded:
-            
+
+        st.info('Select a processing step from the tabs below.')    
         tab_cleansing, tab_transf, tab_norm, tab_split = st.tabs(
             ['🧹️ Data Cleansing', '🔨 Data Transformation', '⚖️ Data Normalization', '✂️ Data Split']
             ) 
@@ -134,12 +123,49 @@ with preprocessing_tab:
 
 
 with learning_tab:
-    if st.session_state.uploaded:
+    if st.session_state.initialized_preprocessing:
         learning_method_widgets()
     else:
-        st.markdown(
-        """
-        👆 Use the **📂 Data Upload** tab to upload and import a dataset for learning.
-        # ⛔ This tab will be accesible after data importing. 
-        """
-        )
+        if not st.session_state.uploaded:
+            st.markdown(
+            """
+            👆 Use the **📂 Data Upload** tab to upload and import a dataset for learning.
+            # ⛔ This tab will be accesible after data importing. 
+            """
+            )
+        else:
+            st.markdown(
+            """
+            👆 Use the **⚙️ Data Preprocessing** tab to process data and to split input/output columns.
+            # ⛔ This tab will be accesible after data splitting. 
+            """
+            )
+
+
+
+## sidebar df info
+if st.session_state.uploaded:
+    st.write('')
+    
+    st.sidebar.write('')
+    st.sidebar.radio('Select task', ['Classification', 'Timeseries forecasting','Regression'], key = 'learning_task', help=help_task)
+    st.sidebar.info(f'You selected {st.session_state.learning_task}')
+
+    st.sidebar.write('')
+    st.sidebar.write('')
+
+    check_dataset = st.sidebar.toggle('Show dataset')
+
+    if check_dataset:
+
+        t1, t2, t3 = st.tabs(['📃 Dataset', '📊 Dataset statistics', '🔍 Generic info'])
+        with t1:
+            st.caption('Working dataset')
+            st.dataframe(st.session_state.working_df)
+        with t2:
+            st.write(st.session_state.working_df.describe())
+        with t3:
+            buffer = io.StringIO()
+            st.session_state.working_df.info(buf=buffer)
+            s = buffer.getvalue()
+            st.text(s)

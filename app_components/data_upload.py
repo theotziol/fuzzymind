@@ -141,6 +141,7 @@ def submit_deletion_callback(to_delete):
 def restore_df_changes_callback():
     st.session_state.working_df = st.session_state.initial_df.copy()
     st.session_state.changed = False
+    st.session_state.initialized_preprocessing = False
     st.success('Changes discarded')
 
 

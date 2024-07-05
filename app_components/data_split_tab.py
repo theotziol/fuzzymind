@@ -7,7 +7,7 @@ help_splitting_method = "The **Standard** method allows the user to use their ow
 
 def spliting_widgets():
     st.subheader('Data Split', divider = 'gray')
-    st.selectbox('Select the splitting method', ['Standard', 'KFold'], key = 'split_method', help = help_splitting_method)
+    st.selectbox('Select the splitting method', ['Standard', 'KFold'], None, key = 'split_method', help = help_splitting_method)
     #warn for kfold and timeseries
     if st.session_state.split_method == 'KFold':
         if st.session_state.learning_task == 'Regression':
@@ -16,18 +16,26 @@ def spliting_widgets():
         with col1:
             st.radio('Number of splits', [5, 10], key = 'kfold_n_splits', horizontal=True)
             st.write(f'Learning will be performed with **{st.session_state.kfold_n_splits}Fold cross-validation**. A {100//st.session_state.kfold_n_splits}% chunk of data will be used for **testing**')
+            
         with col2:
             st.checkbox('Shuffle dataset', True, key = 'kfold_shuffle', help = 'Select indices at random')
+            st.slider('Validation split', 0.1, 0.3, 0.2, 0.05, key = 'validation_split', help = 'The proportion of the training dataset that is kept for validating training (validation dataset)')
 
-    else:
+    elif st.session_state.split_method == 'Standard':
         col1, col2 = st.columns(2)
         with col1:
             st.slider('Select splitting ratio', 0.6, max_value=0.9, value = 0.8, step = 0.05, key='split_ratio')
             st.write(f'{int(100*st.session_state.split_ratio)}% will be used for **training** and {100 - int(100*st.session_state.split_ratio)}% will be used for **testing**.')
+            
         with col2:
-            st.checkbox('Shuffle dataset', True, key = 'standard_shuffle', help = 'Shuffle dataset prior to splitting')
+            st.checkbox('Shuffle dataset', True, key = 'standard_shuffle', help = 'Shuffle dataset prior to splitting.')
+            st.slider('Validation split', 0.1, 0.3, 0.2, 0.05, key = 'validation_split', help = 'The proportion of the training dataset that is kept for validating training (validation dataset)')
             if st.session_state.learning_task == 'Regression' and st.session_state.standard_shuffle:
+                #warn for shuffling and timeseries
                 st.warning('You selected shuffle with a regression task, this may not work properly with timeseries data', icon = '⚠️')
+    split_input_target()
+        
+    
 
 
 
@@ -36,13 +44,21 @@ def spliting_widgets():
 def split_input_target():
     st.subheader('Split input-output columns', divider = 'gray')
     st.multiselect('Select output column(s)', st.session_state.working_df.columns, placeholder='Choose column(s)...', key = 'output_columns')
-    st.write(f'You selected {st.session_state.output_columns} as output columns...')
+    if len(st.session_state.output_columns) == 0:
+        st.write(f'Selecte output column(s) to continue...')
+    else:
+        st.write(f'You selected {st.session_state.output_columns} as output columns...')
+        submit = st.button('Submit', on_click = submit_splitting_parameters_callback)
+        if submit:
+            st.toast('Submitted splitting parameters', icon = '✔️')
 
 
 
 
 
 
+def submit_splitting_parameters_callback():
+    st.session_state.initialized_preprocessing = True
 
             
             
