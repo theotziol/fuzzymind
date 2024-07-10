@@ -7,7 +7,7 @@ help_splitting_method = "The **Standard** method allows the user to use their ow
 
 def spliting_widgets():
     st.subheader('Data Split', divider = 'gray')
-    st.selectbox('Select the splitting method', ['Standard', 'KFold'], None, key = 'split_method', help = help_splitting_method)
+    method = st.selectbox('Select the splitting method', ['Standard', 'KFold'], None, key = 'split_method', help = help_splitting_method)
     #warn for kfold and timeseries
     if st.session_state.split_method == 'KFold':
         if st.session_state.learning_task == 'Regression':
@@ -33,7 +33,11 @@ def spliting_widgets():
             if st.session_state.learning_task == 'Regression' and st.session_state.standard_shuffle:
                 #warn for shuffling and timeseries
                 st.warning('You selected shuffle with a regression task, this may not work properly with timeseries data', icon = '⚠️')
-    split_input_target()
+    if method != None:
+        split_input_target()
+    else:
+        st.write('Select a splitting method for training/testing to continue...')
+
         
     
 
@@ -48,6 +52,7 @@ def split_input_target():
         st.write(f'Selecte output column(s) to continue...')
     else:
         st.write(f'You selected {st.session_state.output_columns} as output columns...')
+        
         submit = st.button('Submit', on_click = submit_splitting_parameters_callback)
         if submit:
             st.toast('Submitted splitting parameters', icon = '✔️')
@@ -57,8 +62,13 @@ def split_input_target():
 
 
 
+
 def submit_splitting_parameters_callback():
     st.session_state.initialized_preprocessing = True
+    if st.session_state.split_method == 'Standard' and st.session_state.standard_shuffle:
+        st.session_state.working_df = st.session_state.working_df.sample(frac = 1).reset_index(drop=True)
+    st.session_state.input_df = st.session_state.working_df[[i for i in st.session_state.working_df.columns if i not in st.session_state.output_columns]]
+    st.session_state.output_df = st.session_state.working_df[st.session_state.output_columns]
 
             
             

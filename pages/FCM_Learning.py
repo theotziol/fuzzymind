@@ -12,6 +12,7 @@ from app_components.data_transformation_tab import *
 from app_components.data_norm_tab import *
 from app_components.data_split_tab import *
 from app_components.learning_tab import *
+from app_components.results_tab import *
 
 st.set_page_config(
     page_title = 'FCM Learning',
@@ -46,10 +47,25 @@ if 'initialized_preprocessing' not in st.session_state.keys():
 if 'training_finished' not in st.session_state.keys():
     st.session_state.training_finished = False
 
+if 'input_df' not in st.session_state.keys():
+    st.session_state.input_df = None
+
+if 'output_df' not in st.session_state.keys():
+    st.session_state.output_df = None
+
+### This session state variable indicates that the training shall start. It is being toggled in the learning tab
+if 'train' not in st.session_state.keys():
+    st.session_state.train = False
+
+### This is the session state variable where the trained model will be stored
+if 'model' not in st.session_state.keys():
+    st.session_state.model = None
 
 
+data_tab, data_visual, preprocessing_tab, learning_tab, results_tab = st.tabs(
+    ['📂 Data Upload', '📈 Data Visualization', '⚙️ Data Preprocessing', '🧠 Learning', '📑 Testing Results']
+    )
 
-data_tab, data_visual, preprocessing_tab, learning_tab = st.tabs(['📂 Data Upload', '📈 Data Visualization', '⚙️ Data Preprocessing', '🧠 Learning'])
 
 with data_tab:
     csv = upload_widgets()
@@ -60,8 +76,16 @@ with data_tab:
     
             
     else:
+        ### give back the initial values to the session state variables 
+        # st.session_state.clear()
         st.session_state.uploaded = False
         st.session_state.initialized_preprocessing = False
+        st.session_state.training_finished = False
+        st.session_state.output_df = None
+        st.session_state.input_df = None
+        st.session_state.model = None
+        st.session_state.train = False
+
         if 'working_df' in st.session_state.keys():
             del st.session_state.working_df
         
@@ -77,7 +101,7 @@ with data_visual:
         st.markdown(
         """
         👆 Use the **📂 Data Upload** tab to upload and import a dataset for learning.
-        # ⛔ This tab will be accesible after data importing. ⛔ 
+        # ⛔ This tab will be accesible after data importing. 
         """
         )
 
@@ -116,11 +140,6 @@ with preprocessing_tab:
         """
         )
 
-        
-
-
-
-
 
 with learning_tab:
     if st.session_state.initialized_preprocessing:
@@ -138,6 +157,24 @@ with learning_tab:
             """
             👆 Use the **⚙️ Data Preprocessing** tab to process data and to split input/output columns.
             # ⛔ This tab will be accesible after data splitting. 
+            """
+            )
+
+with results_tab:
+    if st.session_state.initialized_preprocessing:
+        results_widgets()
+    else:
+        if not st.session_state.uploaded:
+            st.markdown(
+            """
+            👆 Use the **📂 Data Upload** tab to upload and import a dataset for learning.
+            # ⛔ This tab will be accesible after data importing. 
+            """
+            )
+        else:
+            st.markdown(
+            """
+            👆 Use the **🧠 Learning** tab to initialize a learning method. 
             """
             )
 
