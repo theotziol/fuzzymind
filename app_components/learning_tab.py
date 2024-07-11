@@ -2,10 +2,15 @@ import streamlit as st
 import pandas as pd 
 import numpy as np
 import sys
+from matplotlib import pyplot as plt
+import time
 
 sys.path.insert(1, '../fcm_codes')
+sys.path.insert(1, '../app_components')
 from fcm_codes.dynamic_fcm import *
-
+from app_components.learning_results import *
+from app_components.testing_results import *
+from app_components.weight_matrix_results import *
 
 help_learning_algorithms = "Neural-FCM is an FCM learning algorithm introduced by (Tziolas et al 2024) that utilizes a neural network for learning the FCM matrix.\
     Particle Swarm Optimization (PSO) is a population-based algorithm widely used in FCM learning tasks"
@@ -27,6 +32,8 @@ help_epochs = 'Epoch is a **complete forward pass** of **all the training data**
 
 help_early_stopping = 'Early stopping monitors the loss in the training and validation data. \
     In case the loss in the validation data fails to improve for a predifined number of epochs (patience parameter), the training stops.'
+
+# help_loss = 'Neural-FCM loss is a triple weigthed loss of a) Categorical Cross Entropy (CCE) (weight = 2), b) Diagonal (weight = 1) and c) Output loss (weight = 1). Diagonal loss aims to push diagonal values to 0 and output loss aims to push output concept rows to 0 values'
 
 def learning_method_widgets():
     st.subheader('Learning methods', divider = 'blue')
@@ -58,27 +65,28 @@ def parameters_tab_neural_fcm():
     else:
         help_fcm_iter = help_fcm_iter_regression
         fcm_iter = 2
-    col1, col2 = st.columns([0.4, 0.6])
-    with col1:
-        st.write('**Neural-FCM Classifier parameters.**')
-        st.slider('λ-slope sigmoid parameter', 1, 10, 1, step = 1, key = 'l_slope', help = help_l_slope)
-        st.slider('FCM iterations', 1, 10, fcm_iter, step = 1, key = 'fcm_iter', help = help_fcm_iter_class)
-        st.radio('Batch size', [4, 16, 32, 64, 128], 3, key = 'batch_size', help = help_batch_size, horizontal=True)
+    with st.expander('Neural-FCM parameters...', expanded = not st.session_state.training_finished):
+        col1, col2 = st.columns([0.4, 0.6])
+        with col1:
+            st.write('**Neural-FCM Classifier parameters.**')
+            st.slider('λ-slope sigmoid parameter', 1, 10, 1, step = 1, key = 'l_slope', help = help_l_slope)
+            st.slider('FCM iterations', 1, 10, fcm_iter, step = 1, key = 'fcm_iter', help = help_fcm_iter_class)
+            st.radio('Batch size', [4, 16, 32, 64, 128], 3, key = 'batch_size', help = help_batch_size, horizontal=True)
 
 
-    with col2:
-        st.write('**Other training parameters.**')
-        st.slider('Epochs', 20, 800, 500, 5, key='epochs', help = help_epochs)
-        st.checkbox('Early stopping', True, key = 'bool_early_stopping', help = help_early_stopping)
-        if st.session_state.bool_early_stopping:
-            cl1, cl2 = st.columns(2)
-            with cl1:
-                st.slider('Epochs patience', 10, 40, 20, 1, key = 'patience', help = 'The number of epochs that the early stopping algorithm shall wait before stopping the training.')
-            with cl2:
-                st.write('')
-                st.checkbox('Restore best weights', True, key='restore_best_weights', help = 'Whether to acquire the weights of the epoch where the minimum validation error was occured or at the final epoch (after patience epochs)')
-        st.slider('Learning rate', 0.0001, 0.01, 0.001, 0.0001, format = '%0.4f', key='learning_rate', help = 'The learning rate for the [Adam](https://keras.io/api/optimizers/adam/) optimizer. Recommended 0.001, (Adam default)')
-    
+        with col2:
+            st.write('**Other training parameters.**')
+            st.slider('Epochs', 20, 1000, 700, 5, key='epochs', help = help_epochs)
+            st.checkbox('Early stopping', True, key = 'bool_early_stopping', help = help_early_stopping)
+            if st.session_state.bool_early_stopping:
+                cl1, cl2 = st.columns(2)
+                with cl1:
+                    st.slider('Epochs patience', 10, 40, 20, 1, key = 'patience', help = 'The number of epochs that the early stopping algorithm shall wait before stopping the training.')
+                with cl2:
+                    st.write('')
+                    st.checkbox('Restore best weights', True, key='restore_best_weights', help = 'Whether to acquire the weights of the epoch where the minimum validation error was occured or at the final epoch (after patience epochs)')
+            st.slider('Learning rate', 0.0001, 0.01, 0.001, 0.0001, format = '%0.4f', key='learning_rate', help = 'The learning rate for the [Adam](https://keras.io/api/optimizers/adam/) optimizer. Recommended 0.001, (Adam default)')
+        
     c1, c2, c3 = st.columns([0.4, 0.3, 0.3])
     with c2:
         ## to do initialize training
@@ -88,16 +96,35 @@ def parameters_tab_neural_fcm():
         st.session_state.training_finished = False
         learning()
         st.session_state.train = False
-    
-    if st.session_state.training_finished:
-        learning_results()
-
-
-   
-            
 
 def parameters_tab_pso():
     st.info('PSO is under construction')
+
+
+
+    
+def results_widgets():
+    '''
+    Generic function that gathers the results. Results are divided in three tabs 
+    1. learning results (contains information regarding the training)
+    2. testing results (contains information regarding the testing in unseen data)
+    3. Weight matrix results (aims to plot and present the learned weight matrix)
+
+    The widgets of each tab are invoked from another script
+    '''
+    if st.session_state.training_finished:
+        st.subheader('Results', divider='blue')
+        tab_learning_results, tab_testing_results, tab_matrix = st.tabs(['🎓 Learning Results', '📑 Testing Results', '🧮 Weight Matrix'])
+        with tab_learning_results:
+            learning_results() 
+        with tab_testing_results:
+            testing_results() 
+        with tab_matrix:
+            weight_matrix_results() 
+
+
+
+
 
 
 
@@ -131,21 +158,45 @@ def learning_results():
     It aims to gather and show results from learning. 
     '''
     
-    if st.session_state.learning_task == 'Classification':
-        if st.session_state.learning_algorithm == 'Neural-FCM':
-            if st.session_state.split_method == 'KFold':
-                pass
-            else:
-                learning_results_neuralfcm_classification_standard()
-        elif st.session_state.learning_algorithm == 'Particle Swarm Optimization':
+    
+    if st.session_state.learning_algorithm == 'Neural-FCM':
+        if st.session_state.split_method == 'KFold':
             pass
-    elif st.session_state.learning_task == 'Regression':
-        if st.session_state.learning_algorithm == 'Neural-FCM':
-            pass
-        elif st.session_state.learning_algorithm == 'Particle Swarm Optimization':
-            pass
-    else:
+        else:
+            st.caption('Learning results.')
+            learning_results_neuralfcm_standard()
+    elif st.session_state.learning_algorithm == 'Particle Swarm Optimization':
         pass
+    
+
+def testing_results():
+    '''
+    the function that invokes all the other functions when the learning is finished. 
+    It aims to gather and show results from the testing dataset. 
+    '''
+
+    if st.session_state.learning_task == 'Classification':
+        if st.session_state.split_method == 'KFold':
+            pass
+        else:
+            st.caption('Testing results.')
+            testing_results_standard_classification()
+    elif st.session_state.learning_task == 'Regression':
+        pass
+
+    elif st.session_state.learning_task == 'Timeseries forecasting':
+        pass
+
+
+def weight_matrix_results():
+    if st.session_state.learning_algorithm == 'Neural-FCM':
+        if st.session_state.split_method == 'KFold':
+            pass
+        else:
+            weight_matrix_widgets_neuralfcm()
+    elif st.session_state.learning_algorithm == 'Particle Swarm Optimization':
+        pass
+
 
 
 #### classification learning methods
@@ -170,47 +221,23 @@ def learning_neuralfcm_classification_standard():
     
         nfcm.times = time_callback.times #store the epoch times to the model
         nfcm.history = history
-        st.session_state.model = nfcm
         st.session_state.training_finished = True
+        
     if st.session_state.training_finished:
         st.success('Learning has finished!')
         with st.status("Testing on unseen data...", expanded = True) as status:
             st.write('Predicting FCM weight matrices...')
+            start = time.time()
             nfcm.predict_classification(x_test)
+            finish = time.time()
+            nfcm.metrics_classification(y_test)
+            st.session_state.model = nfcm
+            st.session_state.model.prediction_time = np.round(finish-start, 4)
             status.update(label = 'Testing Completed', state = 'complete', expanded = False)
 
 
 
-def learning_results_neuralfcm_classification_standard():
-    
-        # st.write('Go to the **📑 Results** tab ☝️ to see the results of FCM learning')
-        col1, col2 = st.columns(2)
-        with col1:
-            st.write(f'Learning has finished after {np.round(np.sum(st.session_state.model.times)/1000, 3)} sec and {len(st.session_state.model.times)} epochs.\n')
-            st.write(f'Mean time per epoch {np.round(np.mean(st.session_state.model.times), 3)} ms.\n')
-            st.write(f'Batch size {st.session_state.batch_size}\n')
-            st.write(f'Total learning samples: {len(st.session_state.output_df.iloc[:int(len(st.session_state.output_df)*st.session_state.split_ratio)])},  Shuffled : {st.session_state.standard_shuffle}\n')
-            st.write(f'Total testing samples: {len(st.session_state.output_df.iloc[int(len(st.session_state.output_df)*st.session_state.split_ratio):])}\n')
-        with col2:
-            help_loss = 'Neural-FCM classifer loss is a triple weigthed loss of a) Categorical Cross Entropy (CCE) (weight = 2), b) Diagonal (weight = 1) and c) Output loss (weight = 1). Diagonal loss aims to push diagonal values to 0 and output loss aims to push output concept rows to 0 values'
-            st.write(f'Maximum loss {np.round(np.max(st.session_state.model.history.history["loss"]), 3)}',help = help_loss)
-            st.write(f'Minimum loss {np.round(np.min(st.session_state.model.history.history["loss"]), 3)}\n',help = help_loss)
-            st.write(f'Maximum validation loss {np.round(np.max(st.session_state.model.history.history["val_loss"]), 3)}',help = help_loss)
-            st.write(f'Minimum validation loss {np.round(np.min(st.session_state.model.history.history["val_loss"]), 3)}\n',help = help_loss)
-            to_plot = st.toggle('Generate learning loss graph')
-        if to_plot:
-            plot_loss(st.session_state.model.history)
-        
 
-@st.cache_data
-def plot_loss(history):
-    fig, axs = plt.subplots(figsize = (width, height))
-    axs.plot(history.history["loss"], label = 'Loss')
-    axs.plot(history.history["val_loss"], label = 'Validation Loss')
-    axs.set_ylabel('Neural-FCM loss')
-    axs.set_xlabel('Epochs')
-    axs.legend()
-    st.pyplot(fig)
 
 
             

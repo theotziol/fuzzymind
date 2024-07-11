@@ -12,7 +12,7 @@ from app_components.data_transformation_tab import *
 from app_components.data_norm_tab import *
 from app_components.data_split_tab import *
 from app_components.learning_tab import *
-from app_components.results_tab import *
+
 
 st.set_page_config(
     page_title = 'FCM Learning',
@@ -62,9 +62,7 @@ if 'model' not in st.session_state.keys():
     st.session_state.model = None
 
 
-data_tab, data_visual, preprocessing_tab, learning_tab, results_tab = st.tabs(
-    ['📂 Data Upload', '📈 Data Visualization', '⚙️ Data Preprocessing', '🧠 Learning', '📑 Testing Results']
-    )
+data_tab, data_visual, preprocessing_tab, learning_tab = st.tabs(['📂 Data Upload', '📈 Data Visualization', '⚙️ Data Preprocessing', '🧠 Learning'])
 
 
 with data_tab:
@@ -144,6 +142,7 @@ with preprocessing_tab:
 with learning_tab:
     if st.session_state.initialized_preprocessing:
         learning_method_widgets()
+        results_widgets()
     else:
         if not st.session_state.uploaded:
             st.markdown(
@@ -157,24 +156,6 @@ with learning_tab:
             """
             👆 Use the **⚙️ Data Preprocessing** tab to process data and to split input/output columns.
             # ⛔ This tab will be accesible after data splitting. 
-            """
-            )
-
-with results_tab:
-    if st.session_state.initialized_preprocessing:
-        results_widgets()
-    else:
-        if not st.session_state.uploaded:
-            st.markdown(
-            """
-            👆 Use the **📂 Data Upload** tab to upload and import a dataset for learning.
-            # ⛔ This tab will be accesible after data importing. 
-            """
-            )
-        else:
-            st.markdown(
-            """
-            👆 Use the **🧠 Learning** tab to initialize a learning method. 
             """
             )
 
