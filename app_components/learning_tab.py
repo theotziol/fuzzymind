@@ -73,7 +73,6 @@ def parameters_tab_neural_fcm():
             st.slider('FCM iterations', 1, 10, fcm_iter, step = 1, key = 'fcm_iter', help = help_fcm_iter_class)
             st.radio('Batch size', [4, 16, 32, 64, 128], 3, key = 'batch_size', help = help_batch_size, horizontal=True)
 
-
         with col2:
             st.write('**Other training parameters.**')
             st.slider('Epochs', 20, 1000, 700, 5, key='epochs', help = help_epochs)
@@ -97,34 +96,9 @@ def parameters_tab_neural_fcm():
         learning()
         st.session_state.train = False
 
+
 def parameters_tab_pso():
     st.info('PSO is under construction')
-
-
-
-    
-def results_widgets():
-    '''
-    Generic function that gathers the results. Results are divided in three tabs 
-    1. learning results (contains information regarding the training)
-    2. testing results (contains information regarding the testing in unseen data)
-    3. Weight matrix results (aims to plot and present the learned weight matrix)
-
-    The widgets of each tab are invoked from another script
-    '''
-    if st.session_state.training_finished:
-        st.subheader('Results', divider='blue')
-        tab_learning_results, tab_testing_results, tab_matrix = st.tabs(['🎓 Learning Results', '📑 Testing Results', '🧮 Weight Matrix'])
-        with tab_learning_results:
-            learning_results() 
-        with tab_testing_results:
-            testing_results() 
-        with tab_matrix:
-            weight_matrix_results() 
-
-
-
-
 
 
 
@@ -137,7 +111,7 @@ def learning():
     if st.session_state.learning_task == 'Classification':
         if st.session_state.learning_algorithm == 'Neural-FCM':
             if st.session_state.split_method == 'KFold':
-                pass
+                learning_neuralfcm_classification_KFold()
             else:
                 learning_neuralfcm_classification_standard()
         elif st.session_state.learning_algorithm == 'Particle Swarm Optimization':
@@ -150,52 +124,49 @@ def learning():
     else:
         pass
         
-
-
-def learning_results():
+def results_widgets():
     '''
-    the function that invokes all the other functions when the learning is finished. 
-    It aims to gather and show results from learning. 
+    Generic function that gathers the results. Results are divided in three tabs 
+    1. learning results (contains information regarding the training)
+    2. testing results (contains information regarding the testing in unseen data)
+    3. Weight matrix results (aims to plot and present the learned weight matrix)
+
+    The widgets of each tab are invoked from another script
     '''
-    
-    
-    if st.session_state.learning_algorithm == 'Neural-FCM':
+    if st.session_state.training_finished:
+        st.subheader('Results', divider='blue')
         if st.session_state.split_method == 'KFold':
-            pass
+            tab_learning_results_averg, tab_testing_results_averag = st.tabs(['🎓 Average Learning Results', '📑 Average Testing Results'])
+            with tab_learning_results_averg:
+                learning_results(fold = 'average')
+            with tab_testing_results_averag:
+                testing_results(fold = 'average')
+            st.divider()
+            cl1, cl2, cl3 = st.columns([0.3, 0.4, 0.3])
+            with cl2:
+                select_fold = st.selectbox('Select fold results...', st.session_state.kfold_dic.keys(), None, format_func=lambda option: f'Fold {option}', placeholder='Choose a fold')
+            if select_fold != None:
+                st.caption(f'Fold {select_fold} results.')
+                tab_learning_results, tab_testing_results, tab_matrix = st.tabs(['🎓 Learning Results', '📑 Testing Results', '🧮 Weight Matrix'])
+                with tab_learning_results:
+                    learning_results(fold = select_fold) 
+                with tab_testing_results:
+                    testing_results(fold = select_fold) 
+                with tab_matrix:
+                    weight_matrix_results(fold = select_fold) 
+
+
         else:
-            st.caption('Learning results.')
-            learning_results_neuralfcm_standard()
-    elif st.session_state.learning_algorithm == 'Particle Swarm Optimization':
-        pass
-    
-
-def testing_results():
-    '''
-    the function that invokes all the other functions when the learning is finished. 
-    It aims to gather and show results from the testing dataset. 
-    '''
-
-    if st.session_state.learning_task == 'Classification':
-        if st.session_state.split_method == 'KFold':
-            pass
-        else:
-            st.caption('Testing results.')
-            testing_results_standard_classification()
-    elif st.session_state.learning_task == 'Regression':
-        pass
-
-    elif st.session_state.learning_task == 'Timeseries forecasting':
-        pass
+            tab_learning_results, tab_testing_results, tab_matrix = st.tabs(['🎓 Learning Results', '📑 Testing Results', '🧮 Weight Matrix'])
+            with tab_learning_results:
+                learning_results(fold = None) 
+            with tab_testing_results:
+                testing_results(fold = None) 
+            with tab_matrix:
+                weight_matrix_results(fold = None) 
 
 
-def weight_matrix_results():
-    if st.session_state.learning_algorithm == 'Neural-FCM':
-        if st.session_state.split_method == 'KFold':
-            pass
-        else:
-            weight_matrix_widgets_neuralfcm()
-    elif st.session_state.learning_algorithm == 'Particle Swarm Optimization':
-        pass
+
 
 
 
@@ -237,11 +208,54 @@ def learning_neuralfcm_classification_standard():
 
 
 
+def learning_neuralfcm_classification_KFold():
+    from sklearn.model_selection import KFold 
+    dic_kfold = {}
+    with st.status('Learning has started. This may take a while...', expanded = True) as status:
+        kf = KFold(n_splits = st.session_state.kfold_n_splits, shuffle = st.session_state.shuffle)
+        fold = 0
+        for train_index, test_index in kf.split(st.session_state.input_df):
+            fold +=1
+            st.write(f'Fold {fold}...')
+            dic_kfold[fold] = {}
+            x_train = st.session_state.input_df.iloc[train_index].to_numpy()
+            y_train = st.session_state.output_df.iloc[train_index].to_numpy()
+            x_test = st.session_state.input_df.iloc[test_index].to_numpy()
+            y_test = st.session_state.output_df.iloc[test_index].to_numpy()
+            train_y = np.concatenate([x_train,y_train], axis = -1)
+            nfcm = neural_fcm(x_train.shape[-1],y_train.shape[-1], fcm_iter=st.session_state.fcm_iter, l_slope=st.session_state.l_slope)
+            nfcm.initialize_loss_and_compile('cce', lr = st.session_state.learning_rate)
+            time_callback = TimeHistory()
+            if st.session_state.bool_early_stopping:
+                callbacks = [keras.callbacks.EarlyStopping(monitor = 'val_loss', patience = st.session_state.patience, restore_best_weights=st.session_state.restore_best_weights), time_callback]
+            else:
+                callbacks = [time_callback]
+            history = nfcm.model.fit(x_train, train_y, batch_size=st.session_state.batch_size, epochs = st.session_state.epochs, validation_split = st.session_state.validation_split, callbacks = callbacks)
+        
+            nfcm.times = time_callback.times #store the epoch times to the model
+            nfcm.history = history
+            st.success(f'Learning of fold {fold} has finished!')
+            start = time.time()
+            nfcm.predict_classification(x_test)
+            finish = time.time()
+            nfcm.metrics_classification(y_test)
+            nfcm.prediction_time = np.round(finish-start, 4)
+            nfcm.train_index = train_index
+            nfcm.test_index = test_index
+            dic_kfold[fold] = nfcm
 
+        
+            
+        st.session_state.training_finished = True
+        st.session_state.kfold_dic = dic_kfold
+        status.update(label = f'{st.session_state.kfold_n_splits}Fold has finished!', state = 'complete', expanded = False)
+        
+        
 
 
             
-    
+
+
 
 def learning_pso_classification():
     pass
@@ -260,3 +274,5 @@ def learning_pso_regression():
 def _on_click_train():
     st.session_state.train = True
     st.session_state.training_finished = False
+
+

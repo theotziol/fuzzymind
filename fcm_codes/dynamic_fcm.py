@@ -49,7 +49,7 @@ class neural_fcm:
         self,
         loss,
         regresion_loss_weights = [0.95, 10.0, 1.0],
-        classification_loss_weights = [2.0, 1.0, 1.0],
+        classification_loss_weights = [1.5, 1.0, 1.0], # in experiments were  [2.0, 1.0, 1.0]
         lr = 0.001,
     ):
         '''
