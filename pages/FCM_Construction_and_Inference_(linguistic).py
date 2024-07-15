@@ -13,7 +13,7 @@ from app_components.design_manually_linguistic import *
 
 # General Page Configurations
 st.set_page_config(
-    page_title = 'FCM Linguistic Construction and Inference',
+    page_title = 'FCM Construction and Inference (linguistic)',
     page_icon="🛠",
     layout = 'wide',
     menu_items = {

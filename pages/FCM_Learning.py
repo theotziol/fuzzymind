@@ -1,6 +1,36 @@
 import streamlit as st 
 import io
 
+### This session state variable indicates that a dataset has been uploaded
+if 'uploaded' not in st.session_state.keys():
+    st.session_state.uploaded = False
+
+### This session state variable indicates that a dataset has preprocessed and is ready for learning
+if 'initialized_preprocessing' not in st.session_state.keys():
+    st.session_state.initialized_preprocessing = False
+
+if 'normalized' not in st.session_state.keys():
+    st.session_state.normalized = False
+
+### This session state variable indicates that a training is completed
+if 'training_finished' not in st.session_state.keys():
+    st.session_state.training_finished = False
+
+if 'input_df' not in st.session_state.keys():
+    st.session_state.input_df = None
+
+if 'output_df' not in st.session_state.keys():
+    st.session_state.output_df = None
+
+### This session state variable indicates that the training shall start. It is being toggled in the learning tab
+if 'train' not in st.session_state.keys():
+    st.session_state.train = False
+
+### This is the session state variable where the trained model will be stored
+if 'model' not in st.session_state.keys():
+    st.session_state.model = None
+
+
 
 import sys
 sys.path.insert(1, '../fcm_codes')
@@ -35,31 +65,6 @@ help_task = "Use the **classification** option if your FCM will categorize your 
 st.title('FCM Learning 🎓')
 st.header('Construct an FCM based on data', divider = 'blue')
 
-### This session state variable indicates that a dataset has been uploaded
-if 'uploaded' not in st.session_state.keys():
-    st.session_state.uploaded = False
-
-### This session state variable indicates that a dataset has preprocessed and is ready for learning
-if 'initialized_preprocessing' not in st.session_state.keys():
-    st.session_state.initialized_preprocessing = False
-
-### This session state variable indicates that a training is completed
-if 'training_finished' not in st.session_state.keys():
-    st.session_state.training_finished = False
-
-if 'input_df' not in st.session_state.keys():
-    st.session_state.input_df = None
-
-if 'output_df' not in st.session_state.keys():
-    st.session_state.output_df = None
-
-### This session state variable indicates that the training shall start. It is being toggled in the learning tab
-if 'train' not in st.session_state.keys():
-    st.session_state.train = False
-
-### This is the session state variable where the trained model will be stored
-if 'model' not in st.session_state.keys():
-    st.session_state.model = None
 
 
 data_tab, data_visual, preprocessing_tab, learning_tab = st.tabs(['📂 Data Upload', '📈 Data Visualization', '⚙️ Data Preprocessing', '🧠 Learning'])
@@ -78,6 +83,7 @@ with data_tab:
         # st.session_state.clear()
         st.session_state.uploaded = False
         st.session_state.initialized_preprocessing = False
+        st.session_state.normalized = False
         st.session_state.training_finished = False
         st.session_state.output_df = None
         st.session_state.input_df = None
@@ -86,6 +92,9 @@ with data_tab:
 
         if 'working_df' in st.session_state.keys():
             del st.session_state.working_df
+        
+        if 'non_norm_working_df' in st.session_state.keys():
+            del st.session_state.non_norm_working_df
         
         
         st.sidebar.info('Import data to continue', icon="ℹ️")
@@ -166,10 +175,15 @@ if st.session_state.uploaded:
     st.write('')
     
     st.sidebar.write('')
-    st.sidebar.radio('Select task', ['Classification', 'Timeseries forecasting','Regression'], key = 'learning_task', help=help_task)
+    st.sidebar.radio('Select task', 
+    [
+        'Classification', 
+        # 'Timeseries forecasting',
+        'Regression'
+        ], 
+        key = 'learning_task', help=help_task)
     st.sidebar.info(f'You selected {st.session_state.learning_task}')
 
-    st.sidebar.write('')
     st.sidebar.write('')
 
     check_dataset = st.sidebar.toggle('Show dataset')

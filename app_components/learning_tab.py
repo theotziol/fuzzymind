@@ -8,6 +8,7 @@ import time
 sys.path.insert(1, '../fcm_codes')
 sys.path.insert(1, '../app_components')
 from fcm_codes.dynamic_fcm import *
+from fcm_codes.preprocessing import split_train_test
 from app_components.learning_results import *
 from app_components.testing_results import *
 from app_components.weight_matrix_results import *
@@ -22,9 +23,10 @@ help_fcm_iter_class = 'The number of **FCM iterations**. In Neural-FCM classific
     The FCM classification literature proposes 2-5 FCM iterations.'
 
 help_fcm_iter_timeseries = 'The number of **FCM iterations**. In Neural-FCM timeseries forecasting the FCM inference is performed for a predifined number of iterations and is associated with the timestep-ahead prediction. \
-    For instance a one-step inference aims to forecast one-step ahead values.'
+    For instance a one-step inference aims to forecast one-step ahead values. The value of the output concept at the last inference state will be used as the predicted value. \n\
+        **Disabled. Equals to the timestep number in splitting parameters.**'
 
-help_fcm_iter_regression = 'The number of **FCM iterations**.'
+help_fcm_iter_regression = 'The number of **FCM iterations** for performing inference. The value of the output concept at the last inference state will be used as the predicted value.'
 
 help_batch_size = 'The **batch size** defines the number of samples that will be propagated through the network. As **small** batch sizes require **less memory**, the maximum allowed batch size is set to 128 for better app efficiency.'
 
@@ -58,19 +60,24 @@ def parameters_tab_neural_fcm():
     '''
     if st.session_state.learning_task == 'Classification':
         help_fcm_iter = help_fcm_iter_class
+        disabled = False
         fcm_iter = 2
-    elif st.session_state.learning_task == 'Timeseries forecasting':
-        help_fcm_iter = help_fcm_iter_timeseries
-        fcm_iter = 1
-    else:
-        help_fcm_iter = help_fcm_iter_regression
-        fcm_iter = 2
+    elif st.session_state.learning_task == 'Regression':
+        if st.session_state.regression_split == 'Standard split':
+            disabled = False
+            fcm_iter = 1
+            help_fcm_iter = help_fcm_iter_regression
+        else:
+            disabled = True
+            fcm_iter = st.session_state.timestep_num
+            help_fcm_iter = help_fcm_iter_timeseries
+    
     with st.expander('Neural-FCM parameters...', expanded = not st.session_state.training_finished):
         col1, col2 = st.columns([0.4, 0.6])
         with col1:
             st.write('**Neural-FCM Classifier parameters.**')
             st.slider('λ-slope sigmoid parameter', 1, 10, 1, step = 1, key = 'l_slope', help = help_l_slope)
-            st.slider('FCM iterations', 1, 10, fcm_iter, step = 1, key = 'fcm_iter', help = help_fcm_iter_class)
+            st.slider('FCM iterations', 1, 10, fcm_iter, step = 1, key = 'fcm_iter', help = help_fcm_iter, disabled=disabled)
             st.radio('Batch size', [4, 16, 32, 64, 128], 3, key = 'batch_size', help = help_batch_size, horizontal=True)
 
         with col2:
@@ -118,7 +125,7 @@ def learning():
             learning_pso_classification()
     elif st.session_state.learning_task == 'Regression':
         if st.session_state.learning_algorithm == 'Neural-FCM':
-            learning_neuralfcm_regression()
+            learning_neuralfcm_regression_standard()
         elif st.session_state.learning_algorithm == 'Particle Swarm Optimization':
             learning_pso_regression()
     else:
@@ -262,8 +269,39 @@ def learning_pso_classification():
 
 
 ### Regression learning methods
-def learning_neuralfcm_regression():
-    pass
+def learning_neuralfcm_regression_standard():
+    with st.spinner('Learning has started. This may take a while...'):
+        train_x, test_x, train_y, test_y = split_train_test(st.session_state.input_df.to_numpy(), st.session_state.output_df.to_numpy(), st.session_state.split_ratio)
+        nfcm = neural_fcm(train_x.shape[-1],output_concepts=len(st.session_state.output_columns) ,fcm_iter=st.session_state.fcm_iter, l_slope=st.session_state.l_slope)
+        nfcm.initialize_loss_and_compile('regression')
+        time_callback = TimeHistory()
+        if st.session_state.bool_early_stopping:
+            callbacks = [keras.callbacks.EarlyStopping(monitor = 'val_loss', patience = st.session_state.patience, restore_best_weights=st.session_state.restore_best_weights), time_callback]
+        else:
+            callbacks = [time_callback]
+        history = nfcm.model.fit(train_x, train_y, batch_size=st.session_state.batch_size, epochs = st.session_state.epochs, validation_split = st.session_state.validation_split, callbacks = callbacks)
+
+        nfcm.times = time_callback.times #store the epoch times to the model
+        nfcm.history = history
+        st.session_state.training_finished = True
+
+    if st.session_state.training_finished:
+        st.success('Learning has finished!')
+        with st.status("Testing on unseen data...", expanded = True) as status:
+            st.write('Predicting FCM weight matrices...')
+            start = time.time()
+            nfcm.predict_regression(test_x)
+            finish = time.time()
+            real_array_test = st.session_state.non_norm_working_df[st.session_state.output_columns].iloc[-len(test_y):].to_numpy()
+            real_array = st.session_state.non_norm_working_df[st.session_state.output_columns].to_numpy()
+            nfcm.statistics_regression(real_array_test[:,0], real_array)
+            nfcm.statistics_regression_norm(test_y[:, -len(st.session_state.output_columns)])
+            st.session_state.model = nfcm
+            st.session_state.model.prediction_time = np.round(finish-start, 4)
+            status.update(label = 'Testing Completed', state = 'complete', expanded = False)
+
+
+    
 
 
 def learning_pso_regression():

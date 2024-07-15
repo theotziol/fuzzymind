@@ -45,40 +45,44 @@ def upload_widgets():
                         st.text(f'Additional provided missining value symbols: {na_values_list}')
             
         
-            
-            df = read_csv(csv, delimiter = delimiter, decimal = decimal, na_values = na_values_list)
+            try:
+                df = read_csv(csv, delimiter = delimiter, decimal = decimal, na_values = na_values_list)
 
-            cl1, cl2, cl3 = st.columns([0.4, 0.4, 0.2])
-            with cl3:
-                with st.popover('Advanced options'):
-                    combine_index_cols = st.multiselect('Select multiple datetime columns', df.columns)
-                    if len(combine_index_cols) > 0:
-                        submit_parse_dates = st.checkbox('Apply', key = 'date_columns')
-                        if st.session_state['date_columns']:
-                            df = read_csv(csv, delimiter = delimiter, decimal = decimal, na_values = na_values_list, parse_dates=[combine_index_cols])
+                cl1, cl2, cl3 = st.columns([0.4, 0.4, 0.2])
+                with cl3:
+                    with st.popover('Advanced options'):
+                        combine_index_cols = st.multiselect('Select multiple datetime columns', df.columns)
+                        if len(combine_index_cols) > 0:
+                            submit_parse_dates = st.checkbox('Apply', key = 'date_columns')
+                            if st.session_state['date_columns']:
+                                df = read_csv(csv, delimiter = delimiter, decimal = decimal, na_values = na_values_list, parse_dates=[combine_index_cols])
 
-            c1, c2 , c3 = st.columns([0.2, 0.6, 0.3])
-            with c2:
-                st.caption(f'{csv.name} dataset')
-                st.dataframe(df)
+                c1, c2 , c3 = st.columns([0.2, 0.6, 0.3])
+                with c2:
+                    st.caption(f'{csv.name} dataset')
+                    st.dataframe(df)
 
-            show_info = st.toggle('Show dataset info')
-            if show_info:
-                t1, t2 = st.tabs(['📊 Dataset statistics', '🔍 Generic info'])
-                with t1:
-                    st.write(df.describe())
-                with t2:
-                    buffer = io.StringIO()
-                    df.info(buf=buffer)
-                    s = buffer.getvalue()
-                    st.text(s)
+                show_info = st.toggle('Show dataset info')
+                if show_info:
+                    t1, t2 = st.tabs(['📊 Dataset statistics', '🔍 Generic info'])
+                    with t1:
+                        st.write(df.describe())
+                    with t2:
+                        buffer = io.StringIO()
+                        df.info(buf=buffer)
+                        s = buffer.getvalue()
+                        st.text(s)
+                
+                col1,col2,col3 = st.columns((0.35, 0.3, 0.35))
+                
+                with col2:
+                    imported = st.button("Import data", key = 'imported', help=helps['import'], on_click=upload_callback, args = (df, ))
+                return csv
+            except:
+                st.warning('Error, with the default CSV options. Please provide the right parameters.')
+                
+                return csv
             
-            col1,col2,col3 = st.columns((0.35, 0.3, 0.35))
-            
-            with col2:
-                imported = st.button("Import data", key = 'imported', help=helps['import'], on_click=upload_callback, args = (df, ))
-            
-            return csv
     else: return csv
         
 
@@ -110,7 +114,6 @@ def modify_dataset():
                 st.write(f'You selected {to_delete} to be deleted!')
                 submit_deletion = st.button('Submit', key = 'submit_deletion',on_click=submit_deletion_callback, args = (to_delete, ) )
 
-    
 
 
                     

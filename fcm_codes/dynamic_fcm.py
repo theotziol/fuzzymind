@@ -262,6 +262,12 @@ class neural_fcm:
         self.mse = tf.losses.MSE(self.predictions_actual,real_array_test).numpy()
         self.mae = tf.losses.MAE(self.predictions_actual,real_array_test).numpy()
         self.mape = tf.losses.MAPE(tf.convert_to_tensor(self.predictions_actual, dtype = tf.float64),tf.convert_to_tensor(real_array_test, dtype=tf.float64)).numpy()
+        self.real_array_test = real_array_test
+        corr_matrix = np.corrcoef(self.real_array_test, self.predictions_actual)
+        corr = corr_matrix[0,1]
+        self.R_sq = np.round(corr**2, 3)
+        self.m, self.b = np.polyfit(self.real_array_test, self.predictions_actual, 1)
+
         print(f'MSE = {np.round(self.mse, 4)}\nMAE = {np.round(self.mae, 4)}\nMAPE = {np.round(self.mape, 4)}\n')
 
 

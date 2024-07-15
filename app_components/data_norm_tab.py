@@ -26,12 +26,15 @@ def data_normalization():
                 st.write('The z-score method (often called standardization) transforms each column into distribution with a mean of 0 and a typical deviation of 1. The following formula is applied:')
                 st.write(standard_scaler_formula)
                 
+                
         if method == 'Min-Max Normalization':
             apply_changes = st.button('Apply normalization', on_click=apply_min_max_callback)
             if apply_changes:
                 st.success('Dataset was succesfully normalized.')
         elif method == 'Standard Scaler':
-            apply_changes = st.button('Apply normalization', on_click=apply_standard_callback)
+            #warn and disable as it has not been tested with standarization
+            st.warning('This method is not compatible with the FCM theory that expects FCM concept values to be in [0, 1]. Please select the Min-Max method for consistency!')
+            apply_changes = st.button('Apply normalization', on_click=apply_standard_callback, disabled=True)
             if apply_changes:
                 st.success('Dataset was succesfully normalized.')
 
@@ -56,9 +59,11 @@ def check_text(df):
 ### submit callbacks
 
 def apply_min_max_callback():
+    st.session_state.non_norm_working_df = st.session_state.working_df.copy()
     for column in st.session_state.working_df.columns:
         st.session_state.working_df[column] = (st.session_state.working_df[column] - st.session_state.working_df[column].min()) / (st.session_state.working_df[column].max() - st.session_state.working_df[column].min())
     st.session_state.changed = True
+    st.session_state.normalized = True
 
 def apply_standard_callback():
     for column in st.session_state.working_df.columns:

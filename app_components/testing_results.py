@@ -31,10 +31,16 @@ def testing_results(fold = None):
 
 
     elif st.session_state.learning_task == 'Regression':
-        pass
+        if fold == 'average':
+            testing_results_averaged()
+        elif fold == None:
+            testing_results_regression(st.session_state.model)
+        else:
+            model = st.session_state.kfold_dic[fold]
+            testing_samples = len(model.test_index)
+            testing_results_classification(model, testing_samples)
 
-    elif st.session_state.learning_task == 'Timeseries forecasting':
-        pass
+    
 
 
 def testing_results_classification(model, testing_samples):
@@ -61,7 +67,53 @@ def testing_results_classification(model, testing_samples):
         st.write(f'Total prediction time: {model.prediction_time} ms\n') 
         st.write(f'Prediction batch size: {b_size}\n')
 
+def testing_results_regression(model):
+    '''
+    Function to plot the testing results of the classification:
+    ---Currently has been tested for the Neural-FCM classifier---
+    '''
+    col1, col2 = st.columns(2, gap = 'medium')
 
+    with col1:
+        st.write(f'**MSE**: {np.round(model.mse, 4)}\n')
+        st.write(f'**MAE**: {np.round(model.mae, 4)}\n')
+        st.write(f'**MAPE**: {np.round(model.mape, 4)}\n')
+        st.write(f'**$R^2$**: {np.round(model.R_sq, 4)}\n')
+        
+
+
+    with col2:
+        st.write(f'**MSE (norm)**: {np.round(model.mse_norm, 4)}\n')
+        st.write(f'**MAE (norm)**: {np.round(model.mae_norm, 4)}\n')
+        st.write(f'**Total testing samples**: {len(model.real_array_test)}\n')
+        b_size = np.min([len(model.real_array_test), 32]) #32 the default by keras model.predict
+        st.write(f'**Total prediction time**: {model.prediction_time} ms\n') 
+        st.write(f'**Prediction batch size**: {b_size}\n')
+    
+    tab_regress, tab_r  = st.tabs(['Regression graph', '$R^2$ graph'])
+    height = st.slider("Select figure's height", 3, 10, 4)
+    width = st.slider("Select figure's width", 3, 10, 6)
+    with tab_regress:
+        # st.caption('Regression.')
+        figs, axs = plt.subplots(figsize = (width, height ))
+        axs.plot(model.real_array_test, label = 'Actual values')
+        axs.plot(model.predictions_actual, label = 'Predicted values')
+
+        axs.set_xlabel('Time')
+        axs.legend()
+        st.pyplot(figs)
+
+    with tab_r:
+        # st.caption(f'**$R^2$**')
+        fig, ax = plt.subplots(figsize = (width, height))
+        ax.scatter(model.real_array_test, model.predictions_actual)
+        ax.plot(model.real_array_test, model.m * model.real_array_test + model.b, color = 'g')
+        ax.set_xlabel('Actual values')
+        ax.set_ylabel('Predicted values')
+        st.pyplot(fig)
+
+    
+        
 
 def testing_results_averaged():
     accuracy = []
