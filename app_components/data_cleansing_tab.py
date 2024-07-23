@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt 
 import io
-from app_components.data_upload import restore_df_changes_callback
+
 
 
 def datacleansing_widgets():
@@ -14,10 +14,7 @@ def datacleansing_widgets():
     if manual_proccess:
         st.subheader('Manual processing', divider='gray')
         st.session_state.working_df = st.data_editor(st.session_state.working_df, on_change=data_editor_callback)
-    col1,col2,col3 = st.columns([0.5, 0.3, 0.2])
-    with col3:
-        if st.session_state.changed:
-            restore = st.button('Restore all changes', on_click=restore_df_changes_callback)
+    
 
 
 

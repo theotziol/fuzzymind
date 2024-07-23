@@ -32,13 +32,12 @@ def testing_results(fold = None):
 
     elif st.session_state.learning_task == 'Regression':
         if fold == 'average':
-            testing_results_averaged()
+            testing_results_averaged_regression()
         elif fold == None:
             testing_results_regression(st.session_state.model)
         else:
             model = st.session_state.kfold_dic[fold]
-            testing_samples = len(model.test_index)
-            testing_results_classification(model, testing_samples)
+            testing_results_regression(model)
 
     
 
@@ -72,25 +71,24 @@ def testing_results_regression(model):
     Function to plot the testing results of the classification:
     ---Currently has been tested for the Neural-FCM classifier---
     '''
-    col1, col2 = st.columns(2, gap = 'medium')
+    col1, col2, col3 = st.columns(3, gap = 'medium')
 
     with col1:
         st.write(f'**MSE**: {np.round(model.mse, 4)}\n')
         st.write(f'**MAE**: {np.round(model.mae, 4)}\n')
-        st.write(f'**MAPE**: {np.round(model.mape, 4)}\n')
+        st.write(f'**MAPE**: {np.round(model.mape, 2)}%\n')
         st.write(f'**$R^2$**: {np.round(model.R_sq, 4)}\n')
-        
-
 
     with col2:
         st.write(f'**MSE (norm)**: {np.round(model.mse_norm, 4)}\n')
         st.write(f'**MAE (norm)**: {np.round(model.mae_norm, 4)}\n')
+    with col3:
         st.write(f'**Total testing samples**: {len(model.real_array_test)}\n')
         b_size = np.min([len(model.real_array_test), 32]) #32 the default by keras model.predict
         st.write(f'**Total prediction time**: {model.prediction_time} ms\n') 
         st.write(f'**Prediction batch size**: {b_size}\n')
     
-    tab_regress, tab_r  = st.tabs(['Regression graph', '$R^2$ graph'])
+    tab_regress, tab_r  = st.tabs(['Fitting graph', '$R^2$ graph'])
     height = st.slider("Select figure's height", 3, 10, 4)
     width = st.slider("Select figure's width", 3, 10, 6)
     with tab_regress:
@@ -138,6 +136,47 @@ def testing_results_averaged():
     with col1:
         st.write(f'**Average accuracy**: {np.round(np.mean(accuracy), 4)}\n')
         st.write(f'**Average F1-score (macro)**: {np.round(np.mean(f1_score_macro), 4)}\n')
-        st.write(f'**F1-score (micro)**: {np.round(np.mean(f1_score_micro), 4)}\n')
+        st.write(f'**Average F1-score (micro)**: {np.round(np.mean(f1_score_micro), 4)}\n')
+    with col2:
+        st.dataframe(df)
+
+
+
+def testing_results_averaged_regression():
+    mse = []
+    mae = []
+    mape = []
+    mse_norm = []
+    mae_norm = []
+    r_sq = []
+    prediction_times = []
+    for key in st.session_state.kfold_dic.keys():
+        mse.append(st.session_state.kfold_dic[key].mse)
+        mae.append(st.session_state.kfold_dic[key].mae)
+        mape.append(st.session_state.kfold_dic[key].mape)
+        mse_norm.append(st.session_state.kfold_dic[key].mse_norm)
+        mae_norm.append(st.session_state.kfold_dic[key].mae_norm)
+        r_sq.append(st.session_state.kfold_dic[key].R_sq)
+        prediction_times.append(st.session_state.kfold_dic[key].prediction_time)
+
+    dic = {
+        'MSE' : mse,
+        'MSE (norm)' : mse_norm,
+        'MAE' : mae,
+        'MAE (norm)' : mae_norm,
+        'MAPE' : mape,
+        'R^2' : r_sq,
+        'Prediction times (ms)' : prediction_times
+    }
+    df = pd.DataFrame(dic, index = st.session_state.kfold_dic.keys())
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.write(f'**Average MSE**: {np.round(np.mean(mse), 4)}\n')
+        st.write(f'**Average MAE**: {np.round(np.mean(mae), 4)}\n')
+        st.write(f'**Average MSE (norm)**: {np.round(np.mean(mse_norm), 4)}\n')
+        st.write(f'**Average MAE (norm)**: {np.round(np.mean(mae_norm), 4)}\n')
+        st.write(f'**Average MAPE**: {np.round(np.mean(mape), 2)}%\n')
+        st.write(f'**Average $R^2$**: {np.round(np.mean(r_sq), 4)}\n')
     with col2:
         st.dataframe(df)

@@ -13,7 +13,6 @@ from fcm_codes.graphs import *
 from app_components.fcm_graph_component import *
 
 
-
 def weight_matrix_results(fold = None):
     if st.session_state.learning_algorithm == 'Neural-FCM':
         if fold == None:
@@ -37,11 +36,17 @@ def weight_matrix_widgets_neuralfcm(model, x_test, y_test):
     col1, col2 = st.columns(2)
     with col1:
         index = st.slider('Select an instance from the test dataset', 1, len(x_test), 1)
-        st.caption(f'Input: Instance {index}')
+        st.caption(f'Input: Testing instance {index}')
         st.dataframe(x_test.iloc[index])
         ### to do change the st.write for regression-forecasting
-        st.write(f'**Actual Class**: {y_test.columns[np.argmax(y_test.iloc[index])]}')
-        st.write(f'**Predicted Class**: {y_test.columns[np.argmax(model.predictions[index])]}, {np.round(model.predictions[index], 2)}')
+        if st.session_state.learning_task == 'Classification':
+            st.write(f'**Actual Class**: {y_test.columns[np.argmax(y_test.iloc[index])]}')
+            st.write(f'**Predicted Class**: {y_test.columns[np.argmax(model.predictions[index])]}, {np.round(model.predictions[index], 2)}')
+        else:
+            st.write(f'**Actual value (norm)**: {np.round(model.test_y[index], 3)}')
+            st.write(f'**Predicted value (norm)**: {np.round(model.predictions[index], 3)}, ')
+            st.write(f'**Actual value**: {model.real_array_test[index]}')
+            st.write(f'**Predicted value**: {np.round(model.predictions_actual[index], 3)}, ')
         
     with col2:
         fig_size = st.slider('Change figure size', 2, 10, 5)

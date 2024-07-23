@@ -14,12 +14,15 @@ helps = {
 
     'import' : 'Import dataset with the current parameters',
     'datetime' : 'Datetime index allows for better visualization of time series data, using time attributes (hour, day, etc).',
+    'upload' : 'Upload a .csv file where each **column** represents a new variable. Select the appropriate reading parameters such as the **delimiter**, **nan** and **decimal** symbols. \
+        After uploading, you can then use the app tools to **process** and **prepare** your dataset for learning.'
 
 }
 
 
 def upload_widgets():
     st.subheader('Data upload')
+    st.info(helps['upload'])
     csv = st.file_uploader('Upload a dataset as ".csv" file', type = 'csv', help=helps['csv']) 
     if csv is not None:
         with st.expander('CSV options', not st.session_state.uploaded):

@@ -125,7 +125,10 @@ def learning():
             learning_pso_classification()
     elif st.session_state.learning_task == 'Regression':
         if st.session_state.learning_algorithm == 'Neural-FCM':
-            learning_neuralfcm_regression_standard()
+            if st.session_state.split_method == 'KFold':
+                learning_neuralfcm_regression_KFold()
+            else:
+                learning_neuralfcm_regression_standard()
         elif st.session_state.learning_algorithm == 'Particle Swarm Optimization':
             learning_pso_regression()
     else:
@@ -171,8 +174,6 @@ def results_widgets():
                 testing_results(fold = None) 
             with tab_matrix:
                 weight_matrix_results(fold = None) 
-
-
 
 
 
@@ -249,19 +250,12 @@ def learning_neuralfcm_classification_KFold():
             nfcm.prediction_time = np.round(finish-start, 4)
             nfcm.train_index = train_index
             nfcm.test_index = test_index
-            dic_kfold[fold] = nfcm
-
-        
-            
+            dic_kfold[fold] = nfcm         
         st.session_state.training_finished = True
         st.session_state.kfold_dic = dic_kfold
         status.update(label = f'{st.session_state.kfold_n_splits}Fold has finished!', state = 'complete', expanded = False)
         
         
-
-
-            
-
 
 
 def learning_pso_classification():
@@ -272,15 +266,29 @@ def learning_pso_classification():
 def learning_neuralfcm_regression_standard():
     with st.spinner('Learning has started. This may take a while...'):
         train_x, test_x, train_y, test_y = split_train_test(st.session_state.input_df.to_numpy(), st.session_state.output_df.to_numpy(), st.session_state.split_ratio)
-        nfcm = neural_fcm(train_x.shape[-1],output_concepts=len(st.session_state.output_columns) ,fcm_iter=st.session_state.fcm_iter, l_slope=st.session_state.l_slope)
-        nfcm.initialize_loss_and_compile('regression')
+        #callbacks
         time_callback = TimeHistory()
         if st.session_state.bool_early_stopping:
             callbacks = [keras.callbacks.EarlyStopping(monitor = 'val_loss', patience = st.session_state.patience, restore_best_weights=st.session_state.restore_best_weights), time_callback]
         else:
             callbacks = [time_callback]
-        history = nfcm.model.fit(train_x, train_y, batch_size=st.session_state.batch_size, epochs = st.session_state.epochs, validation_split = st.session_state.validation_split, callbacks = callbacks)
 
+        #check if data have been splitted for timeseries as proposed in Neural-FCM or as simple input output scheme
+        if st.session_state.timestep_num != None:
+            nfcm = neural_fcm(train_x.shape[-1],output_concepts=len(st.session_state.output_columns) ,fcm_iter=st.session_state.fcm_iter, l_slope=st.session_state.l_slope)
+            nfcm.initialize_loss_and_compile('mse', lr = st.session_state.learning_rate)
+            history = nfcm.model.fit(train_x, train_y, batch_size=st.session_state.batch_size, epochs = st.session_state.epochs, validation_split = st.session_state.validation_split, callbacks = callbacks, shuffle = st.session_state.shuffle)
+        else:
+            y_train = np.concatenate([train_x,train_y], axis = -1)
+            nfcm = neural_fcm(train_x.shape[-1],train_y.shape[-1], fcm_iter=st.session_state.fcm_iter, l_slope=st.session_state.l_slope)
+            nfcm.initialize_loss_and_compile('mse_standard', lr = st.session_state.learning_rate)
+            history = nfcm.model.fit(
+                train_x, y_train, 
+                batch_size=st.session_state.batch_size, 
+                epochs = st.session_state.epochs, 
+                validation_split = st.session_state.validation_split, 
+                callbacks = callbacks, 
+                shuffle = st.session_state.shuffle)
         nfcm.times = time_callback.times #store the epoch times to the model
         nfcm.history = history
         st.session_state.training_finished = True
@@ -301,7 +309,49 @@ def learning_neuralfcm_regression_standard():
             status.update(label = 'Testing Completed', state = 'complete', expanded = False)
 
 
-    
+def learning_neuralfcm_regression_KFold():
+    from sklearn.model_selection import KFold 
+    dic_kfold = {}
+    with st.status('Learning has started. This may take a while...', expanded = True) as status:
+        kf = KFold(n_splits = st.session_state.kfold_n_splits, shuffle = st.session_state.shuffle)
+        fold = 0
+        for train_index, test_index in kf.split(st.session_state.input_df):
+            fold +=1
+            st.write(f'Fold {fold}...')
+            dic_kfold[fold] = {}
+            x_train = st.session_state.input_df.iloc[train_index].to_numpy()
+            y_train = st.session_state.output_df.iloc[train_index].to_numpy()
+            x_test = st.session_state.input_df.iloc[test_index].to_numpy()
+            y_test = st.session_state.output_df.iloc[test_index].to_numpy()
+            train_y = np.concatenate([x_train,y_train], axis = -1)
+            nfcm = neural_fcm(x_train.shape[-1],y_train.shape[-1], fcm_iter=st.session_state.fcm_iter, l_slope=st.session_state.l_slope)
+            nfcm.initialize_loss_and_compile('mse_standard', lr = st.session_state.learning_rate)
+            time_callback = TimeHistory()
+            if st.session_state.bool_early_stopping:
+                callbacks = [keras.callbacks.EarlyStopping(monitor = 'val_loss', patience = st.session_state.patience, restore_best_weights=st.session_state.restore_best_weights), time_callback]
+            else:
+                callbacks = [time_callback]
+            history = nfcm.model.fit(x_train, train_y, batch_size=st.session_state.batch_size, epochs = st.session_state.epochs, validation_split = st.session_state.validation_split, callbacks = callbacks)
+        
+            nfcm.times = time_callback.times #store the epoch times to the model
+            nfcm.history = history
+            st.success(f'Learning of fold {fold} has finished!')
+            start = time.time()
+            nfcm.predict_regression(x_test)
+            finish = time.time()
+
+            real_array_test = st.session_state.non_norm_working_df[st.session_state.output_columns].iloc[test_index].to_numpy()
+            real_array = st.session_state.non_norm_working_df[st.session_state.output_columns].to_numpy()
+            nfcm.statistics_regression(real_array_test[:,0], real_array)
+            nfcm.statistics_regression_norm(y_test[:, -len(st.session_state.output_columns)])
+
+            nfcm.prediction_time = np.round(finish-start, 4)
+            nfcm.train_index = train_index
+            nfcm.test_index = test_index
+            dic_kfold[fold] = nfcm         
+        st.session_state.training_finished = True
+        st.session_state.kfold_dic = dic_kfold
+        status.update(label = f'{st.session_state.kfold_n_splits}Fold has finished!', state = 'complete', expanded = False)
 
 
 def learning_pso_regression():

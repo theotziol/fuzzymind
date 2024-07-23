@@ -55,7 +55,7 @@ class neural_fcm:
         '''
         Initializes the loss and the metrics
         
-            loss : str, the type of loss to be used. Currently only regression loss (MSE) is implemented.
+            loss : str, the type of loss to be used.
             regression_loss_weights : list, the weights that were defined for the loss. 
                 Regression loss has three weights w1, w2, w3. As it is divided in three losses:
                 MSE(tn, tn+1)
@@ -67,19 +67,26 @@ class neural_fcm:
         self.loss_weights_regression = regresion_loss_weights
         self.classification_loss_weights = classification_loss_weights
         #todo define losses for non_categorical data
-        regression_losses = ('regression', 'regresion', 'MSE', 'mse')
-        binary_classification_losses = ('bce', 'BCE', 'Binary_Cross_Entropy')
-        categorical_losses = ('CCE', 'categorical_cross_entropy', 'cce', 'categorical')
+        regression_losses = ('regression', 'regresion', 'mse')
+        standard_reggresion_losses = ('regression standard', 'regression_standard', 'mse_standard', 'mse standard')
+        categorical_losses = ('CCE', 'categorical_cross_entropy', 'cce', 'categorical', 'classification')
         optimizer = tf.keras.optimizers.Adam(lr) 
 
-        if loss in regression_losses:
+        if loss.lower() in regression_losses:
             self.loss = self.__custom_loss_regression
             metrics = [] #todo
             
+        elif loss.lower() in standard_reggresion_losses:
+            self.loss = self.__custom_loss_regression_standard
+            metrics = [] #todo
         
-        if loss in categorical_losses:
+        elif loss.lower() in categorical_losses:
             self.loss = self.__custom_loss_categorical
             metrics = [] #to do
+
+        else:
+            raise Exception(f"loss {loss} not recognized. \
+                \nTry one of: \n{regression_losses} for timeseries regression losses.\n{standard_reggresion_losses} for standard regression.\n{categorical_losses} for classification losses.")
 
         self.model.compile(optimizer, self.loss)
 
@@ -120,15 +127,54 @@ class neural_fcm:
         exp_diagonal = tf.constant(0.0, shape = shape)
 
         error1 = tf.losses.MSE(x, y)
-        error2 = tf.losses.MSE(x[:,-1], y[:, -1] ) #fix -1 to self.output_concept
+        error2 = tf.losses.MSE(x[:,-self.output_concepts:], y[:, -self.output_concepts:] ) #fixed from -1 to -self.output_concept:
         error3 = tf.losses.MSE(diagonal, exp_diagonal)
-        error4 = tf.losses.MSE(exp_diagonal, predicted[:, -1, :, 0])#the output concept
+        error4 = tf.losses.MSE(exp_diagonal, predicted[:, -self.output_concepts:, :, 0])#the output concept
         error = (w1 * error1) \
                 + (w2 * error2) \
                 + (w3 * error3) \
                 + (w3 * error4)
         return error 
     
+    def __custom_loss_regression_standard(
+        self,
+        true,
+        predicted
+    ):
+        '''
+        This loss is used for standard regression. Compared to **__custom_loss_regression** this loss doesn't require the form of timeseries. Hence, it predicts any continuous value.
+        This loss hasn't been systematically tested yet. 
+        '''
+        attributes = true.shape[-1] - self.output_concepts
+        x = true[:, :attributes]
+        y = true[:, attributes:]
+        
+        for i in tf.range(self.fcm_iter):
+            x = x[:, None, :] + tf.linalg.matmul(x[:, None, :],predicted[:, :, :, 0])
+            x = sigmoid(x, self.l_slope)
+            x = x[:, 0]
+        
+        w1 = self.loss_weights_regression[0]
+        w2 = self.loss_weights_regression[1]
+        w3 = self.loss_weights_regression[2]
+
+        diagonal = tf.linalg.diag_part(predicted[:,:,:,0])
+        if x.shape[0] == None:
+            shape = (1, x.shape[-1])
+        else:
+            shape = x.shape
+        exp_diagonal = tf.constant(0.0, shape = shape)
+        error1 = tf.losses.MSE(x, y)
+        error2 = tf.losses.MSE(x[:,-1], y[:, -1] ) #fix -1 to self.output_concept
+        error3 = tf.math.reduce_mean(tf.math.square(diagonal))
+        error4 = tf.math.reduce_mean(tf.math.square(predicted[:, -self.output_concepts:, :, 0]))#the output concept
+        error = (w1 * error1) \
+                + (w2 * error2) \
+                + (w3 * error3) \
+                + (w3 * error4)
+        return error 
+
+
     def __custom_loss_categorical(
         self,
         true,
@@ -236,7 +282,7 @@ class neural_fcm:
         '''
         Calculate the regression statistics for normalized values
         '''
-
+        self.test_y = y
         self.mse_norm = tf.losses.MSE(self.predictions,y).numpy()
         self.mae_norm = tf.losses.MAE(self.predictions,y).numpy()
         print(f'MSE (norm) = {np.round(self.mse_norm, 4)}\nMAE (norm) = {np.round(self.mae_norm, 4)}\n')

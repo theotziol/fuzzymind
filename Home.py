@@ -24,7 +24,7 @@ st.write("# FCM-app! 👋")
 st.markdown(
     """
     FCM-app is an open-source web application built with [Streamlit](https://docs.streamlit.io) framework for Artificial Intelligence (AI) based decision making with 
-    **Fuzzy Cognitive Maps (FCM) and/or Deep Learning**. It currently provides FCM construction and inference, FCM learning with the Neural-FCM algorithm and image classification tasks with Transfer Learning.
+    **Fuzzy Cognitive Maps (FCM) and/or Deep Learning**. It currently provides FCM construction and inference (both linguistic and numeric) and FCM learning with the novel Neural-FCM algorithm.
     
     This app was developed by Dr. Theodoros Tziolas during his Ph.D. and under the supervision of [Prof. Elpiniki Papageorgiou](https://www.energy.uth.gr/index.php/en/personnel/papageorgiou-elpiniki.html).  
     **👈 Navigate though the sidebar** to explore the app's capabilities! 

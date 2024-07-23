@@ -1,6 +1,9 @@
 import streamlit as st 
 import pandas as pd 
+import sys 
 
+sys.path.insert(1, '../fcm_codes')
+from fcm_codes.general_functions import *
 
 load_widget_help = "Upload a '.csv' file.\n\
     It is recommended to upload a '.csv' file where both the first row (header) and the first column (index) contain the concepts' notation/names.\n\
@@ -9,6 +12,8 @@ load_widget_help = "Upload a '.csv' file.\n\
 index_boolean_widget_help = "The uploaded file is expected to has concepts' names/notation as index (first column)\n\
     Set this toggle widget ON if the first column in the .csv file has a separate index\n\
         i.e. first column = [0,1,2,..., n] and second column = [c1, c2, ..., cn]."
+
+help_edit_matrix = "Activating this widget will provide a new table-widget where the weight values (cells) can be modified."
 
 def matrix_upload():
     '''
@@ -35,7 +40,14 @@ def matrix_upload():
                 index_col = 0
             dataframe = pd.read_csv(weight_matrix_file, delimiter=delimiter, decimal = decimal, index_col=index_col)
             dataframe = dataframe.astype(float)
+        st.caption('Uploaded weight matrix.')
         st.write(dataframe)
+        edit = st.toggle("Edit weight matrix values", False, help = help_edit_matrix)
+        if edit:
+            st.caption('Edited weight matrix.')
+            dataframe = st.data_editor(dataframe, disabled = ['-'], column_config=fix_configs(dataframe))
+            dataframe = dataframe.astype(float)
+
     else:
         dataframe = None
     

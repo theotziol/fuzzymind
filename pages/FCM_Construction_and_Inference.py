@@ -40,8 +40,8 @@ with tab_design:
     if mode == 'Design Manually':
         edited_matrix, exists = manual_tab()
         if exists:
-            graph_boolean  = st.radio('Generate FCM graph', ['No', 'Yes'], index = 0, horizontal = True)
-            if graph_boolean == 'Yes':
+            graph_boolean  = st.toggle('Generate FCM graph', False)
+            if graph_boolean:
                 graph(edited_matrix)
             matrix_exist = True
 
@@ -49,8 +49,8 @@ with tab_design:
         edited_matrix, file = matrix_upload()
         if edited_matrix is not None:
             matrix_exist = True
-            graph_boolean  = st.radio('Generate FCM graph', ['No', 'Yes'], index = 0, horizontal = True)
-            if graph_boolean == 'Yes':
+            graph_boolean  = st.toggle('Generate FCM graph', False)
+            if graph_boolean:
                 graph(edited_matrix)
 
   

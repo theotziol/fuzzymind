@@ -1,6 +1,17 @@
 import streamlit as st 
 import io
 
+st.set_page_config(
+    page_title = 'FCM Learning',
+    page_icon="🎓",
+    layout = 'wide',
+    menu_items = {
+        "Get Help" : None, #todo insert the github link
+        "Report a Bug" : "mailto:tziolasphd@gmail.com", 
+        "About" : "This app was created by Dr. Theodoros Tziolas under the supervision of Prof. Elpiniki Papageorgiou. It aims to provide a usefull AI tool that utilizes Fuzzy Cognitive Maps and Deep Learning for decision making."
+        }
+        )
+
 ### This session state variable indicates that a dataset has been uploaded
 if 'uploaded' not in st.session_state.keys():
     st.session_state.uploaded = False
@@ -30,8 +41,9 @@ if 'train' not in st.session_state.keys():
 if 'model' not in st.session_state.keys():
     st.session_state.model = None
 
+  
 
-
+### importing app components
 import sys
 sys.path.insert(1, '../fcm_codes')
 sys.path.insert(1, '../app_components')
@@ -42,32 +54,15 @@ from app_components.data_transformation_tab import *
 from app_components.data_norm_tab import *
 from app_components.data_split_tab import *
 from app_components.learning_tab import *
+from app_components.sidebar import *
 
-
-st.set_page_config(
-    page_title = 'FCM Learning',
-    page_icon="🎓",
-    layout = 'wide',
-    menu_items = {
-        "Get Help" : None, #todo insert the github link
-        "Report a Bug" : "mailto:tziolasphd@gmail.com", 
-        "About" : "This app was created by Dr. Theodoros Tziolas under the supervision of Prof. Elpiniki Papageorgiou. It aims to provide a usefull AI tool that utilizes Fuzzy Cognitive Maps and Deep Learning for decision making."
-        }
-        )
-
-help_task = "Use the **classification** option if your FCM will categorize your data into distinct classes. \
-    \nUse the **Timeseries forecasting** option if your dataset aims to forecast a value based on historical measurements\
-    \nUse the **Regression** option if your FCM will try to predict a continuous variable.\
-    \n\nThe difference between **Timeseries forecasting** and **Regression** is in the **formatting of the input dataset**. \
-    Timeseries forecasting assumes that previous measumenents affect future values. \
-        Thus, it utilizes historical timesteps as concepts to forecast future timesteps and reshapes the dataset so that the input $f(y^{t1}) = x^{t0} + y^{t0}$"
 
 st.title('FCM Learning 🎓')
 st.header('Construct an FCM based on data', divider = 'blue')
 
 
-
 data_tab, data_visual, preprocessing_tab, learning_tab = st.tabs(['📂 Data Upload', '📈 Data Visualization', '⚙️ Data Preprocessing', '🧠 Learning'])
+
 
 
 with data_tab:
@@ -97,9 +92,8 @@ with data_tab:
             del st.session_state.non_norm_working_df
         
         
-        st.sidebar.info('Import data to continue', icon="ℹ️")
 
-
+sidebar_widgets_task()
 
 with data_visual:
     if st.session_state.uploaded:
@@ -168,36 +162,10 @@ with learning_tab:
             """
             )
 
+sidebar_widgets_show_df()
 
 
-## sidebar df info
-if st.session_state.uploaded:
-    st.write('')
-    
-    st.sidebar.write('')
-    st.sidebar.radio('Select task', 
-    [
-        'Classification', 
-        # 'Timeseries forecasting',
-        'Regression'
-        ], 
-        key = 'learning_task', help=help_task)
-    st.sidebar.info(f'You selected {st.session_state.learning_task}')
 
-    st.sidebar.write('')
 
-    check_dataset = st.sidebar.toggle('Show dataset')
 
-    if check_dataset:
 
-        t1, t2, t3 = st.tabs(['📃 Dataset', '📊 Dataset statistics', '🔍 Generic info'])
-        with t1:
-            st.caption('Working dataset')
-            st.dataframe(st.session_state.working_df)
-        with t2:
-            st.write(st.session_state.working_df.describe())
-        with t3:
-            buffer = io.StringIO()
-            st.session_state.working_df.info(buf=buffer)
-            s = buffer.getvalue()
-            st.text(s)
