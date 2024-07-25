@@ -34,9 +34,9 @@ def inference_results(df_inference_process):
     inference_placeholder = st.empty()
     with inference_placeholder.container():
         st.subheader('Inference Results', divider='blue')
-        st.caption('Inference Dataframe')
+        st.caption('Inference progress (Table).')
         st.dataframe(df_inference_process)
-        st.caption('Inference Graph')
+        st.caption('Inference progress (Graph).')
         st.line_chart(df_inference_process)
 
     return inference_placeholder

@@ -39,15 +39,15 @@ with tab_design:
         dic_final = fuzzy_sets()
         edited_matrix, exists = manual_tab_linguistic(dic_final)
         if exists:
-            graph_boolean  = st.radio('Generate FCM graph', ['No', 'Yes'], index = 0, horizontal = True)
-            if graph_boolean == 'Yes':
+            graph_boolean  = st.toggle('Generate FCM graph', False)
+            if graph_boolean:
                 graph(edited_matrix, True)
             matrix_exist = True
             edited_matrix = defuzzification_single(edited_matrix, dic_final)
             st.caption('Deffuzzified weight matrix')
             st.dataframe(edited_matrix)
-            graph_boolean_defuz  = st.radio('Generate FCM graph (Defuzzified)', ['No', 'Yes'], index = 0, horizontal = True)
-            if graph_boolean_defuz == 'Yes':
+            graph_boolean_defuz  = st.toggle('Generate FCM graph (Defuzzified)', False)
+            if graph_boolean_defuz:
                 graph(edited_matrix, False)
             # file_name = st.text_input('Download as...', 'file1', max_chars=15)
             # st.download_button('Download matrix as csv', data= convert_df(edited_matrix), file_name=file_name + '.csv', mime="text/csv")
@@ -59,15 +59,15 @@ with tab_design:
         if edited_matrix is not None and dic_final is not None:
             print(edited_matrix)
             matrix_exist = True
-            graph_boolean  = st.radio('Generate FCM graph', ['No', 'Yes'], index = 0, horizontal = True)
-            if graph_boolean == 'Yes':
+            graph_boolean  = st.toggle('Generate FCM graph', False)
+            if graph_boolean:
                 graph(edited_matrix, True)
             matrix_exist = True
             edited_matrix = defuzzification_single(edited_matrix, dic_final)
             st.caption('Deffuzzified weight matrix')
             st.dataframe(edited_matrix)
-            graph_boolean_defuz  = st.radio('Generate FCM graph (Defuzzified)', ['No', 'Yes'], index = 0, horizontal = True)
-            if graph_boolean_defuz == 'Yes':
+            graph_boolean_defuz  = st.toggle('Generate FCM graph (Defuzzified)', False)
+            if graph_boolean_defuz:
                 graph(edited_matrix, False)
 
     elif mode == 'Knowledge Aggregation':
@@ -76,8 +76,8 @@ with tab_design:
            dummy_df, stored_mfs = aggregation_info_display(dic_uploads)
            edited_matrix = deffuzification_widgets(dummy_df, stored_mfs)
            matrix_exist = True
-           graph_boolean  = st.radio('Generate FCM graph (Defuzzified)', ['No', 'Yes'], index = 0, horizontal = True)
-           if graph_boolean == 'Yes':
+           graph_boolean  = st.toggle('Generate FCM graph (Defuzzified)',False)
+           if graph_boolean:
                 graph(edited_matrix)
 
     

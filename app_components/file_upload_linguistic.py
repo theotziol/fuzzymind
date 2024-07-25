@@ -9,7 +9,7 @@ import io
 ## Basic info text variables
 basic_info = "Upload pairs of '.csv'/'.json' files with the same name. E.g. **'file1.csv'** and **'file1.json'.**"
 
-compatibility_info = "Currently this app is designed to work with weight matrices and json files that derived from this app. Use the Design Manually tab to construct and download such files."
+compatibility_info = "Upload a '.csv' file containing a weight matrix with fuzzy interconnections and a '.json' file containing information of the fuzzy variables. For compatibility use the **Design Manually** tab of this app to create and download linguistic matrices based on fuzzy variables."
 
 load_widget_help = "It is recommended to upload a '.csv' file where both the first row (header) and the first column (index) contain the concepts' notation/names.\n\
         You can use [Design Manually] option to construct and download manually a weight matrix.\n\
@@ -41,39 +41,48 @@ def matrix_upload():
         file: type = object. object attributes : [file_id, name, type, size, upload_url, delete_url] i.e. file.name returns the name of the file
         dataframe: pd.DataFrame of the weight matrix
     '''
+    st.subheader('Automatic construction from files')
     st.info(compatibility_info)
     with st.expander('Upload files...'):
         col1, col2 = st.columns(2, gap = 'medium')
 
         with col1:
-            weight_matrix_file = st.file_uploader('Upload a .csv file', type = 'csv', help=load_widget_help)
-            fuzzy_variables_file = st.file_uploader('Upload a .json file of the membership functions', type = 'json', help=load_widget_json_help)
+            weight_matrix_file = st.file_uploader('Upload a **.csv** file', type = 'csv', help=load_widget_help)
+            fuzzy_variables_file = st.file_uploader('Upload a **.json** file of the membership functions', type = 'json', help=load_widget_json_help)
         if weight_matrix_file is not None:
             with col2:
                 delimiter = st.radio("Select file's delimiter", [',', '.', ';'],
                                     index = 0,
                                     captions = ['Comma (default)', 'Full Stop (dot)', 'Semicolon'], horizontal = True)
-                decimal = st.radio("Select file's decimal", [',', '.'],
-                                    index = 1,
-                                    captions = ['Comma', 'Dot (default)'], horizontal = True)
+                # decimal = st.radio("Select file's decimal", [',', '.'],
+                #                     index = 1,
+                #                     captions = ['Comma', 'Dot (default)'], horizontal = True)
                 boolean_index = st.toggle('Contains index', help=index_boolean_widget_help)
                 if boolean_index:
                     index_col = 1
                 else:
                     index_col = 0
-                dataframe = pd.read_csv(weight_matrix_file, delimiter=delimiter, decimal = decimal, index_col=index_col, dtype = 'object').fillna('None')
-            st.caption('Uploaded linguistic weight matrix')
+                dataframe = pd.read_csv(weight_matrix_file, delimiter=delimiter, decimal = '.', index_col=index_col, dtype = 'object').fillna('None')
+            st.caption('Uploaded linguistic matrix.')
             st.write(dataframe)
+            
         else:
             dataframe = None
         
     if fuzzy_variables_file is not None:
         dic = json.load(fuzzy_variables_file)
-        with st.expander('Modify mfs parameters...'):
+        with st.expander('Modify MFs parameters...'):
             final_dic = modify_fuzzy_memberships(dic)
     else:
-        st.write("No '.json' file is uploaded")
+        # st.write("No '.json' file is uploaded")
         final_dic = None
+    
+    if fuzzy_variables_file is not None and dataframe is not None:
+        modify = st.toggle('Modify uploaded matrix', False, help = "Activate to access an interactive table-widget for modifying fuzzy interconnections")
+        if modify:
+            st.caption('Modified linguistic matrix.')
+            dataframe = st.data_editor(dataframe, disabled = ['-'], column_config=fix_configs_linguistic(dataframe, list(final_dic['memberships'].keys())))
+            st.divider()
 
     return dataframe, weight_matrix_file, final_dic
 
@@ -84,22 +93,22 @@ def matrices_upload():
     Returns:
         
     '''
-    st.info(compatibility_info)
     with st.expander('Upload files...'):
         st.info(basic_info)
         col1, col2 = st.columns(2, gap = 'medium')
         with col1:
-            weight_matrix_files = st.file_uploader('Upload a .csv file', type = 'csv', help=load_widget_help, accept_multiple_files=True)
-            fuzzy_variables_files = st.file_uploader('Upload a .json file of the membership functions', type = 'json', help=load_widget_json_help, accept_multiple_files=True)
+            weight_matrix_files = st.file_uploader('Upload .csv files', type = 'csv', help=load_widget_help, accept_multiple_files=True)
+            fuzzy_variables_files = st.file_uploader('Upload .json files of the membership functions', type = 'json', help=load_widget_json_help, accept_multiple_files=True)
         if len(weight_matrix_files) > 0 and len(fuzzy_variables_files) > 0:
             pairs_boolean = check_uploads(weight_matrix_files, fuzzy_variables_files)
             with col2:
                 delimiter = st.radio("Select files' delimiter", [',', '.', ';'],
                                     index = 0,
                                     captions = ['Comma (default)', 'Full Stop (dot)', 'Semicolon'], horizontal = True)
-                decimal = st.radio("Select files' decimal", [',', '.'],
-                                    index = 1,
-                                    captions = ['Comma', 'Dot (default)'], horizontal = True)
+                # decimal = st.radio("Select files' decimal", [',', '.'],
+                #                     index = 1,
+                #                     captions = ['Comma', 'Dot (default)'], horizontal = True)
+                decimal = '.'
                 boolean_index = st.toggle('Contains index', help=index_boolean_widget_help)
                 if boolean_index:
                     index_col = 1

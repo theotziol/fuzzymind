@@ -22,7 +22,6 @@ helps = {
 
 def upload_widgets():
     st.subheader('Data upload')
-    st.info(helps['upload'])
     csv = st.file_uploader('Upload a dataset as ".csv" file', type = 'csv', help=helps['csv']) 
     if csv is not None:
         with st.expander('CSV options', not st.session_state.uploaded):
@@ -54,7 +53,7 @@ def upload_widgets():
                 cl1, cl2, cl3 = st.columns([0.4, 0.4, 0.2])
                 with cl3:
                     with st.popover('Advanced options'):
-                        combine_index_cols = st.multiselect('Select multiple datetime columns', df.columns)
+                        combine_index_cols = st.multiselect('Select multiple datetime columns', df.columns, help = 'Use this option to select multiple datetime columns for index. e.g. the dataset may contain a column Date and a column Time.')
                         if len(combine_index_cols) > 0:
                             submit_parse_dates = st.checkbox('Apply', key = 'date_columns')
                             if st.session_state['date_columns']:
@@ -86,7 +85,9 @@ def upload_widgets():
                 
                 return csv
             
-    else: return csv
+    else: 
+        st.info(helps['upload'])
+        return csv
         
 
                         

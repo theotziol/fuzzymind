@@ -6,7 +6,7 @@ from fcm_codes.general_functions import *
 #Some help texts for the UI widgets
 
 help_iterations = 'The inference will be running for the chosen number of iterations if no equilibrium point was found.'
-help_equilibrium = 'The threshold $\it{e}$ to terminate inference if the $a^{t+1}_i - a^t_i <= \it{e}$ | $\\forall a^{t+1}_i$'
+help_equilibrium = 'The threshold $\it{h}$ to terminate inference if the $a^{t+1}_i - a^t_i <= \it{h}$ | $\\forall a^{t+1}_i$'
 help_l = 'λ is a parameter in sigmoid function that affects the steepness of the curve'
 help_b = 'b is a parameter in sigmoid function that affects the shifting of the curve'
 sigmoid_formula = '$f(x)=\\dfrac{1}{1+e^{-(λx) + b}}$'
@@ -45,7 +45,7 @@ def inference_parameters():
         if activation_text == 'Sigmoid':
             st.write(sigmoid_formula)
             l = st.number_input('λ sigmoid parameter', min_value=1, max_value=10, value = 1, help = help_l)
-            b = st.number_input('b sigmoid parameter', min_value=-10, max_value=10, value = 0, help = help_l)
+            b = st.number_input('b sigmoid parameter', min_value=-10, max_value=10, value = 0, help = help_b)
         else:
             l, b = None, None
         
