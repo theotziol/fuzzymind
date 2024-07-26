@@ -28,13 +28,13 @@ def nan_values():
             'Statistics':'Fill NA/NaN values by using a statistic based value.'}
     
     if len(columns_na) > 0:
-        with st.expander('Imputation...', len(columns_na) > 0):
-            st.info('Delete or imputate cells and columns with missing values')
+        st.info('Delete rows/columns, or impute values to columns with missing data')
+        with st.expander('Imputation...'):
             column = st.selectbox('Select **column** to process', columns_na, None )
             if column is not None:
                 st.write(f'You selected the {column} column')
             method = st.selectbox('Select the **imputation method**', list(imputation_methods.keys()), None, key='fill_method')
-            if method is not None:
+            if method is not None and column is not None:
                 fig, axs = plt.subplots(figsize = (12, 4))
                 st.write(imputation_methods[method])
                 if method == 'Value':
@@ -113,7 +113,7 @@ def outlier_removal():
             z_score = st.slider(
                 'Select the Z-Score for filtering',
                 min_value=1.5,
-                max_value=5.0,
+                max_value=10.0,
                 value = 3.0,
                 step=0.1,
                 help = 'This value/score indicates how far is the data point from the mean.\

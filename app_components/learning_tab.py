@@ -101,7 +101,7 @@ def parameters_tab_neural_fcm():
     if st.session_state.train:
         st.session_state.training_finished = False
         learning()
-        st.session_state.train = False
+        # st.session_state.train = False #bug when train fails it keeps on running when parameters are adjusted. It was added after training stops in each algorithm
 
 
 def parameters_tab_pso():
@@ -201,6 +201,7 @@ def learning_neuralfcm_classification_standard():
         nfcm.times = time_callback.times #store the epoch times to the model
         nfcm.history = history
         st.session_state.training_finished = True
+        st.session_state.train = False
         
     if st.session_state.training_finished:
         st.success('Learning has finished!')
@@ -252,6 +253,7 @@ def learning_neuralfcm_classification_KFold():
             nfcm.test_index = test_index
             dic_kfold[fold] = nfcm         
         st.session_state.training_finished = True
+        st.session_state.train = False
         st.session_state.kfold_dic = dic_kfold
         status.update(label = f'{st.session_state.kfold_n_splits}Fold has finished!', state = 'complete', expanded = False)
         
@@ -292,6 +294,7 @@ def learning_neuralfcm_regression_standard():
         nfcm.times = time_callback.times #store the epoch times to the model
         nfcm.history = history
         st.session_state.training_finished = True
+        st.session_state.train = False
 
     if st.session_state.training_finished:
         st.success('Learning has finished!')
@@ -350,6 +353,7 @@ def learning_neuralfcm_regression_KFold():
             nfcm.test_index = test_index
             dic_kfold[fold] = nfcm         
         st.session_state.training_finished = True
+        st.session_state.train = False
         st.session_state.kfold_dic = dic_kfold
         status.update(label = f'{st.session_state.kfold_n_splits}Fold has finished!', state = 'complete', expanded = False)
 
@@ -360,6 +364,9 @@ def learning_pso_regression():
 
 
 def _on_click_train():
+    ###check if normalized dataset exists, if not, assign non_normalized to working_df to avoid bugs when non-normalized is called (regression)
+    if type(st.session_state.non_norm_working_df) == type(None):
+        st.session_state.non_norm_working_df = st.session_state.working_df.copy() 
     st.session_state.train = True
     st.session_state.training_finished = False
 

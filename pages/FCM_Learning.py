@@ -23,6 +23,10 @@ if 'initialized_preprocessing' not in st.session_state.keys():
 if 'normalized' not in st.session_state.keys():
     st.session_state.normalized = False
 
+### This session state df is used when data are normalized and we want to keep the original 
+if 'non_norm_working_df' not in st.session_state.keys():
+    st.session_state.non_norm_working_df = None
+
 ### This session state variable indicates that a training is completed
 if 'training_finished' not in st.session_state.keys():
     st.session_state.training_finished = False
@@ -55,6 +59,7 @@ from app_components.data_norm_tab import *
 from app_components.data_split_tab import *
 from app_components.learning_tab import *
 from app_components.sidebar import *
+from app_components.warning_signs import *
 
 
 st.title('FCM Learning 🎓')
@@ -84,12 +89,13 @@ with data_tab:
         st.session_state.input_df = None
         st.session_state.model = None
         st.session_state.train = False
+        st.session_state.non_norm_working_df = None
 
         if 'working_df' in st.session_state.keys():
             del st.session_state.working_df
         
-        if 'non_norm_working_df' in st.session_state.keys():
-            del st.session_state.non_norm_working_df
+        
+            
         
         
 
@@ -109,21 +115,26 @@ with data_visual:
 
 with preprocessing_tab:
     if st.session_state.uploaded:
-
-        st.info('Select a processing step from the tabs below.')    
+        st.info('Select a processing step from the tabs below.')  
+        
         tab_cleansing, tab_transf, tab_norm, tab_split = st.tabs(
             ['🧹️ Data Cleansing', '🔨 Data Transformation', '⚖️ Data Normalization', '✂️ Data Split']
             ) 
+        
         with tab_cleansing:
+            warning_signs()
             datacleansing_widgets()
         
         with tab_transf:
+            warning_signs()
             transformation_widgets()
 
         with tab_norm:
+            warning_signs()
             data_normalization()
 
         with tab_split:
+            warning_signs()
             spliting_widgets()
         
         if st.session_state.changed:
@@ -144,6 +155,7 @@ with preprocessing_tab:
 
 with learning_tab:
     if st.session_state.initialized_preprocessing:
+        warning_signs()
         learning_method_widgets()
         results_widgets()
     else:
@@ -163,7 +175,6 @@ with learning_tab:
             )
 
 sidebar_widgets_show_df()
-
 
 
 

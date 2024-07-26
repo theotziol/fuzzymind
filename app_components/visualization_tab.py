@@ -15,7 +15,7 @@ def plot_widgets():
     not_plotting = ('object', 'bool')
     columns = [col for col in st.session_state.working_df.columns if st.session_state.working_df[col].dtype.name not in not_plotting]
 
-    chart_type = st.selectbox('Select the chart type', ['Line', 'Area', 'Bar', 'Boxplot', 'Histogram'])
+    chart_type = st.selectbox('Select chart type', ['Line', 'Area', 'Bar', 'Boxplot', 'Histogram'])
     if chart_type == 'Boxplot':
         columns = st.multiselect('Select column(s) to plot', columns, None)
         if len(columns) > 0:
@@ -53,7 +53,7 @@ def plot_column(column, chart_type):
         elif chart_type == 'Histogram':
             width = st.slider("Change graph's width", 5, 30, 8)
             height = st.slider("Change graph's height", 5, 30, 6)
-            bins = st.slider('Change histogram bins', 10, 100, 30)
+            bins = st.slider('Change histogram bins', 10, 200, 50, 2)
             fig, axs = plt.subplots(figsize = (width, height))
             axs.hist(st.session_state.working_df[column], bins = bins)
             axs.set_ylabel('Cardinality')
