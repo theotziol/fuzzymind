@@ -34,7 +34,7 @@ def upload_widgets():
             with col2:
                 decimal = st.radio("Select file's decimal", [',', '.'],
                                     index = 1,
-                                    captions = ['Comma', 'Period'])
+                                    captions = ['Comma', 'Dot (Period)'])
             with col3:
                 na_values_list = st.multiselect('Define additional symbols for missing values', ['*', '#', '$', 'Other'], help=helps['Missing values'])
                 if 'Other' in na_values_list:
