@@ -379,3 +379,171 @@ def fitness_function():
     def f(X, Y):
         return objective_function(X, Y)
     return f
+
+
+
+
+# import numpy as np
+# from copy import deepcopy as dc
+
+# class PSO:
+#     def __init__(self, fitness_fn, dim,
+#                  pop_size=100,
+#                  n_iter=300,
+#                  b=0.7,
+#                  c1=0.4,
+#                  c2=0.6,
+#                  x_min=-1,
+#                  x_max=1,
+#                  x_offset=0.7):
+#         self.fitness_fn = fitness_fn
+#         self.pop_size = pop_size
+#         self.dim = dim
+#         self.n_iter = n_iter
+#         self.b = b
+#         self.c1 = c1
+#         self.c2 = c2
+#         self.x_min = x_min
+#         self.x_max = x_max
+#         self.offset = x_offset
+
+#         self.x = self.build_swarm()
+#         self.fit_history = []
+#         self.min_history = []
+#         self.v = self.start_velocities()
+#         self.fix_diag()
+#         self.input_concepts_indexes = []
+#         self.output_concepts_indexes = []
+
+#     def build_swarm(self):
+#         swarm_size = [self.pop_size] + list(self.dim)
+#         return np.random.uniform(self.x_min + self.offset, self.x_max - self.offset, swarm_size)
+
+#     def start_velocities(self):
+#         swarm_size = [self.pop_size] + list(self.dim)
+#         return np.random.uniform(self.x_min + self.offset, self.x_max - self.offset, swarm_size)
+
+#     def fix_diag(self):
+#         for i in range(self.pop_size):
+#             np.fill_diagonal(self.x[i], 0)
+#             np.fill_diagonal(self.v[i], 0)
+
+#     def set_initialization(self, weight_matrix):
+#         assert weight_matrix.shape == self.dim
+#         self.x = np.tile(weight_matrix, (self.pop_size, 1, 1))
+#         self.fix_diag()
+
+#     def specify_input_concept(self, column_index):
+#         if column_index not in self.input_concepts_indexes:
+#             self.input_concepts_indexes.append(column_index)
+#         self.x[:, :, column_index] = 0
+#         self.v[:, :, column_index] = 0
+#         print('Concept of column index {}, was set as input concept.'.format(column_index))
+
+#     def specify_output_concept(self, row_index):
+#         if row_index not in self.output_concepts_indexes:
+#             self.output_concepts_indexes.append(row_index)
+#         self.x[:, row_index, :] = 0
+#         self.v[:, row_index, :] = 0
+#         print('Concept of row index {}, was set as output concept.'.format(row_index))
+
+#     def get_randoms(self):
+#         return np.random.uniform(0, 1, (2, *self.dim))
+
+#     def update_p_best(self, f_x):
+#         self.fit_history.append(np.mean(f_x))
+#         self.min_history.append(np.min(f_x))
+#         print('minimum error {}'.format(np.min(f_x)))
+#         better_fit_mask = f_x < self.f_p
+#         self.p = np.where(better_fit_mask[:, None, None], self.x, self.p)
+#         self.f_p = np.where(better_fit_mask, f_x, self.f_p)
+
+#     def update_g_best(self):
+#         self.g = self.p[np.argmin(self.f_p)]
+
+#     def step(self, f_x):
+#         r1, r2 = self.get_randoms()
+#         self.v = (
+#             self.b * self.v
+#             + self.c1 * r1 * (self.p - self.x)
+#             + self.c2 * r2 * (self.g - self.x)
+#         )
+#         self.x = np.clip(self.x + self.v, self.x_min, self.x_max)
+#         self.update_p_best(f_x)
+#         self.update_g_best()
+#         print(self.g)
+
+#     def fcm_learning(self, data, l=1, fcm_iterations=20, verbose=-1, exploration_decay=True):
+#         self.exploration_decay = exploration_decay
+#         dataset_length = len(data)
+#         test_range = [i + 1 for i in range(dataset_length - 1)]
+#         self.p = self.x
+#         for i in range(self.n_iter):
+#             print('Iter {}'.format(i))
+#             f_x = np.zeros((self.pop_size, 1))
+#             for row in range(dataset_length - 1):
+#                 testing_row = test_range[row]
+#                 row_tensor = data[row]
+#                 row_tensor_test = data[testing_row]
+
+#                 self.row_tensor = np.tile(row_tensor, (self.pop_size, 1, 1))
+#                 self.row_tensor_test = np.tile(row_tensor_test, (self.pop_size, 1, 1))
+
+#                 self.inference(l, fcm_iterations, verbose)
+#                 f_x += self.fitness_fn(self.row_tensor_test, self.fcm_outputs_tensor)
+
+#             if i == 0 and row >= dataset_length - 1:
+#                 self.f_p = f_x / dataset_length
+#                 self.g = self.p[np.argmin(self.f_p)]
+
+#             self.step(f_x / dataset_length)
+
+#             if self.exploration_decay:
+#                 self.linear_decay(i)
+#                 self.social_to_cognitive(i)
+
+#             if self.pso_termination(i):
+#                 break
+
+#     def inference(self, l, n_iter, verbose):
+#         self.fcm_outputs = []
+#         for i in range(self.pop_size):
+#             result = fcm(self.row_tensor[i], self.x[i], n_iterations=n_iter).inference(lambda x: sigmoid(x, l), verbose=verbose, classification=False)
+#             self.fcm_outputs.append(result)
+#         self.fcm_outputs_tensor = np.stack(self.fcm_outputs, axis=0)
+
+#     def pso_termination(self, iteration, steps_ratio=0.05):
+#         wait_steps = int(steps_ratio * self.n_iter)
+#         min_fit_index = np.argmin(self.min_history)
+#         if iteration - min_fit_index > wait_steps:
+#             print('PSO termination at step {}, best fit at step {}'.format(iteration, min_fit_index))
+#             return True
+#         else:
+#             return False
+
+#     def linear_decay(self, iteration, target=0.1):
+#         initial_b = 0.90
+#         if iteration > 3 and self.b >= target:
+#             self.b -= initial_b / self.n_iter
+#         elif iteration <= 3:
+#             self.b = initial_b
+
+#     def social_to_cognitive(self, iteration):
+#         c1 = 1.5
+#         c2 = 0.5
+#         if iteration > 3:
+#             self.c1 -= (c1 / self.n_iter)
+#             self.c2 += (c1 / self.n_iter)
+#         elif iteration <= 3:
+#             self.c1 = c1
+#             self.c2 = c2
+
+#     def escape_local_minima(self, iteration, particles_ratio=0.4):
+#         check_points = [int(0.6 * self.n_iter), int(0.8 * self.n_iter)]
+#         best_fit = np.argmin(self.fit_history)
+#         len_fit_history = len(self.fit_history)
+#         if len_fit_history - best_fit > self.n_iter // 2 and iteration in check_points:
+#             random_particles = np.random.choice(self.pop_size, size=int(particles_ratio * self.pop_size), replace=False)
+#             new_particles = np.random.uniform(self.x_min + self.offset, self.x_max - self.offset, (len(random_particles), *self.dim))
+#             self.x[random_particles] = new_particles
+#             self.fix_diag()

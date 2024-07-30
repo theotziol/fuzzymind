@@ -35,6 +35,32 @@ help_epochs = 'Epoch is a **complete forward pass** of **all the training data**
 help_early_stopping = 'Early stopping monitors the loss in the training and validation data. \
     In case the loss in the validation data fails to improve for a predifined number of epochs (patience parameter), the training stops.'
 
+#PSO helps
+help_pso_iter = '''The maximum number of iterations to reach a good solution. Too few iterations may terminate the search prematurely.
+A too large number of iterations has the consequence of unnecessary added
+computational complexity (provided that the number of iterations is the only
+stopping condition)'''
+
+c1_c2 = '''\nParticles draw their strength from their cooperative nature, and are most effective
+when c1 ≈ c2. While most applications use c1 = c2, the ratio between these constants is problem dependent.
+If c1 >> c2, each particle is much more attracted to its own personal
+best position, resulting in excessive wandering. On the other hand, if c2 >> c1,
+particles are more strongly attracted to the global best position, causing particles
+to rush prematurely towards optima. Low values for c1 and c2 result in smooth particle trajectories, allowing particles
+to roam far from good regions to explore before being pulled back towards good
+regions. High values cause more acceleration, with abrupt movement towards or
+past good regions.
+'''
+help_c1 = f'c1 acceleration coefficient expresses how much confidence a particle has in itself. {c1_c2}'
+help_c2 = f'c2 acceleration coefficient expresses how much confidence a particle has in its neighbors. {c1_c2}'
+help_b = '''The inertia weight, w, controls the momentum of the particle by weighing
+the contribution of the previous velocity – basically controlling how much memory of
+the previous flight direction will influence the new velocity.'''
+
+help_offset = 'Weight matrices are initialized randomly with values [-1 + x_offset, 1x-_offset].'
+help_linear_decay = '''A large inertia weight of 0.9 will be initially used that will be linearly decreased to a small value 0.4, In doing so, particles
+are allowed to explore in the initial search steps, while favoring exploitation as time
+increases. C1 and C2 will also be modified linearly.'''
 # help_loss = 'Neural-FCM loss is a triple weigthed loss of a) Categorical Cross Entropy (CCE) (weight = 2), b) Diagonal (weight = 1) and c) Output loss (weight = 1). Diagonal loss aims to push diagonal values to 0 and output loss aims to push output concept rows to 0 values'
 
 def learning_method_widgets():
@@ -106,7 +132,16 @@ def parameters_tab_neural_fcm():
 
 def parameters_tab_pso():
     st.info('PSO is under construction')
-
+    col1, col2 = st.columns(2)
+    with col1:
+        st.slider('Population size', 50, 500, 100, 10, key = pop_size, help = 'The particles population, or the number of matrices that will be initialized.')
+        st.slider('Iterations', 50, 500, 250, 10, key = num_iter, help = help_pso_iter)
+        st.slider('c1', 0.0, 2.5, 1.0, 0.1, key = c1, help = help_c1)
+        st.slider('c2', 0.0, 2.5, 1.0, 0.1, key = c2, help = help_c2)
+        st.slider('b (inertia weight)', 0.0, 2.5, 0.7, 0.1, key = b, help = help_b)
+    with col2:
+        st.slider('x offset', 0.0, 0.9, 0.2, 0.1, key = x_offset, help = help_offset)
+        st.checkbox('Linear inertia decrease', True, key = linear_decay, help = help_linear_decay)
 
 
 def learning():
