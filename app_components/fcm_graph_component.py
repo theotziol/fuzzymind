@@ -28,9 +28,9 @@ def graph(edited_matrix, linguistic = False):
     col1, col2 = st.columns(2, gap = 'small')
     with col1:
         #this column is for modifying the graph parameters
-        layout = st.radio('Change position layout', ['Circular', 'Random', 'Shell'], horizontal=True)
-        figsize = st.slider('Figure size', 5, 15, 10, 1)
-        nodesize = st.slider('Node size', 600, 7000, 2400, 200)
+        layout = st.radio('Change position layout', ['Circular', 'Random', 'Shell'], key = f'position_{linguistic}', horizontal=True)
+        figsize = st.slider('Figure size', 5, 15, 10, 1, key = f'figsize_{linguistic}')
+        nodesize = st.slider('Node size', 600, 7000, 2400, 200, key = f'nodesize_{linguistic}')
 
         # check if needed
         # label_pos = st.slider('Node size', 0.1, 0.9, 0.4, 0.1) 
@@ -57,7 +57,7 @@ def graph(edited_matrix, linguistic = False):
     img = io.BytesIO()
     plt.savefig(img, format='png', dpi = dpi)
 
-    btn = st.download_button('Download figure', data = img, file_name=fn, mime="image/png")
+    btn = st.download_button('Download figure', data = img, file_name=fn, mime="image/png", key = f'download_{linguistic}')
     if btn:
         plt.close('all')
 
@@ -84,7 +84,7 @@ def create_visual_map(
         for j in df.columns:
             weight = df[i].loc[j]
             if weight != 0.0:
-                G.add_edge(i.replace(' ', '\n'), j.replace(' ', '\n'), weight = weight)
+                G.add_edge(str(i).replace(' ', '\n'), str(j).replace(' ', '\n'), weight = weight)
 
 
     fig, ax = plt.subplots(figsize=(figsize + figsize//2, figsize))

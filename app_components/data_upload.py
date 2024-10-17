@@ -99,7 +99,7 @@ def modify_dataset():
         with st.popover('Change column names'):
             st.caption("Provide the desired name for each column.")
             df_columns = pd.DataFrame(df_processed.columns, index = df_processed.columns, columns = ['New name'])
-            edited_columns = st.data_editor(df_columns).to_numpy()
+            edited_columns = st.data_editor(df_columns.to_numpy())
             edited_columns = edited_columns.reshape((edited_columns.shape[0]))
             submit_names = st.button('Submit', key = 'Submit columns', on_click=submit_columns_callback, args = (edited_columns,))
             

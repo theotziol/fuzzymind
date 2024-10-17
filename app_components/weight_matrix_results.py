@@ -56,7 +56,37 @@ def weight_matrix_widgets_neuralfcm(model, x_test, y_test):
         texts = annotate_heatmap(im, size)
         st.caption('FCM weight matrix.')
         st.pyplot(fig)
+    denoise_boolean = st.toggle('Denoise matrix', help = 'It sets the diagonal and the class rows to zero (0) values')
+    if denoise_boolean:
+        plot_matrix = denoise_matrix(model.predicted_matrices[index, :, :, 0], x_test.columns, y_test)
+        col_df, col_fig = st.columns(2)
+        with col_df:
+            st.dataframe(plot_matrix)
+        with col_fig:
+            fig, axs = plt.subplots(figsize = (fig_size, fig_size))
+            im, cbar = heatmap(plot_matrix.to_numpy(), x_test.columns, x_test.columns, ax = axs, cmap = 'coolwarm')
+            texts = annotate_heatmap(im, size)
+            st.pyplot(fig)
+            st.caption('Denoised FCM weight matrix.')
+
+    # st.dataframe(pd.DataFrame(model.predicted_matrices[index, :, :, 0], columns = x_test.columns,index = x_test.columns))# index = x_test.columns
+    else:
+        plot_matrix = pd.DataFrame(np.round(model.predicted_matrices[index, :, :, 0], 2), columns = x_test.columns,index = x_test.columns)
+        st.dataframe(plot_matrix)
+    
+
 
     graph_boolean = st.toggle('Generate FCM graph', help = 'Visualize as a graph the weight matrix.')
     if graph_boolean:
-        graph(pd.DataFrame(np.round(model.predicted_matrices[index, :, :, 0], 2), index = x_test.columns, columns = x_test.columns))
+        graph(plot_matrix)
+
+@st.cache_data
+def denoise_matrix(array, _columns, y_test):
+    array = array.copy()
+    array = np.round(array, 2)
+    # array = np.fill_diagonal(array.copy(), 0.0)
+    for i in range(array.shape[0]):
+        array[i,i] = 0.0
+    for i in range(y_test.shape[-1]):
+        array[-(i + 1), :] = 0.0
+    return pd.DataFrame(array, columns = _columns, index = _columns)

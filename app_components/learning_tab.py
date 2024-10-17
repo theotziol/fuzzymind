@@ -38,8 +38,8 @@ help_early_stopping = 'Early stopping monitors the loss in the training and vali
 #PSO helps
 help_pso_iter = '''The maximum number of iterations to reach a good solution. Too few iterations may terminate the search prematurely.
 A too large number of iterations has the consequence of unnecessary added
-computational complexity (provided that the number of iterations is the only
-stopping condition)'''
+computational complexity provided that the number of iterations is the only
+stopping condition (Computational Intelligence: An Introduction, Engelbrecht)'''
 
 c1_c2 = '''\nParticles draw their strength from their cooperative nature, and are most effective
 when c1 ≈ c2. While most applications use c1 = c2, the ratio between these constants is problem dependent.
@@ -49,13 +49,13 @@ particles are more strongly attracted to the global best position, causing parti
 to rush prematurely towards optima. Low values for c1 and c2 result in smooth particle trajectories, allowing particles
 to roam far from good regions to explore before being pulled back towards good
 regions. High values cause more acceleration, with abrupt movement towards or
-past good regions.
+past good regions (Computational Intelligence: An Introduction, Engelbrecht).
 '''
 help_c1 = f'c1 acceleration coefficient expresses how much confidence a particle has in itself. {c1_c2}'
 help_c2 = f'c2 acceleration coefficient expresses how much confidence a particle has in its neighbors. {c1_c2}'
 help_b = '''The inertia weight, w, controls the momentum of the particle by weighing
 the contribution of the previous velocity – basically controlling how much memory of
-the previous flight direction will influence the new velocity.'''
+the previous flight direction will influence the new velocity. (Computational Intelligence: An Introduction, Engelbrecht)'''
 
 help_offset = 'Weight matrices are initialized randomly with values [-1 + x_offset, 1x-_offset].'
 help_linear_decay = '''A large inertia weight of 0.9 will be initially used that will be linearly decreased to a small value 0.4, In doing so, particles
@@ -131,17 +131,41 @@ def parameters_tab_neural_fcm():
 
 
 def parameters_tab_pso():
-    st.info('PSO is under construction')
-    col1, col2 = st.columns(2)
-    with col1:
-        st.slider('Population size', 50, 500, 100, 10, key = pop_size, help = 'The particles population, or the number of matrices that will be initialized.')
-        st.slider('Iterations', 50, 500, 250, 10, key = num_iter, help = help_pso_iter)
-        st.slider('c1', 0.0, 2.5, 1.0, 0.1, key = c1, help = help_c1)
-        st.slider('c2', 0.0, 2.5, 1.0, 0.1, key = c2, help = help_c2)
-        st.slider('b (inertia weight)', 0.0, 2.5, 0.7, 0.1, key = b, help = help_b)
-    with col2:
-        st.slider('x offset', 0.0, 0.9, 0.2, 0.1, key = x_offset, help = help_offset)
-        st.checkbox('Linear inertia decrease', True, key = linear_decay, help = help_linear_decay)
+    if st.session_state.learning_task == 'Classification':
+        help_fcm_iter = help_fcm_iter_class
+        disabled = False
+        fcm_iter = 2
+    elif st.session_state.learning_task == 'Regression':
+        if st.session_state.regression_split == 'Standard split':
+            disabled = False
+            fcm_iter = 1
+            help_fcm_iter = help_fcm_iter_regression
+        else:
+            disabled = True
+            fcm_iter = st.session_state.timestep_num
+            help_fcm_iter = help_fcm_iter_timeseries
+
+    with st.expander('PSO-FCM parameters...', expanded = not st.session_state.training_finished):
+        col1, col2 = st.columns(2)
+        with col1:
+            st.slider('λ-slope sigmoid parameter', 1, 10, 1, step = 1, key = 'l_slope', help = help_l_slope)
+            st.slider('FCM iterations', 1, 10, fcm_iter, step = 1, key = 'fcm_iter', help = help_fcm_iter, disabled=disabled)
+            st.slider('Population size', 50, 500, 100, 10, key = pop_size, help = 'The particles population, or the number of matrices that will be initialized.')
+            st.slider('Iterations', 50, 500, 250, 10, key = num_iter, help = help_pso_iter)
+        with col2:
+            st.slider('x offset', 0.0, 0.9, 0.2, 0.1, key = x_offset, help = help_offset)
+            st.checkbox('Linear inertia decrease', True, key = linear_decay, help = help_linear_decay)
+            st.slider('c1', 0.0, 2.5, 1.0, 0.1, key = c1, help = help_c1)
+            st.slider('c2', 0.0, 2.5, 1.0, 0.1, key = c2, help = help_c2)
+            st.slider('b (inertia weight)', 0.0, 2.5, 0.7, 0.1, key = b, help = help_b)
+    c1, c2, c3 = st.columns([0.4, 0.3, 0.3])
+    with c2:
+        ## to do initialize training
+        train = st.button('Fit on data', on_click = _on_click_train)
+
+    if st.session_state.train:
+        st.session_state.training_finished = False
+        learning()
 
 
 def learning():
@@ -296,7 +320,7 @@ def learning_neuralfcm_classification_KFold():
 
 
 def learning_pso_classification():
-    pass
+    st.info('PSO is under construction')
 
 
 ### Regression learning methods
@@ -394,7 +418,7 @@ def learning_neuralfcm_regression_KFold():
 
 
 def learning_pso_regression():
-    pass
+    st.info('PSO is under construction')
 
 
 
