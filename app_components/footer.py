@@ -1,5 +1,5 @@
 def footer_markdown():
-    footer="""
+    footer = """
     <style>
     a:link , a:visited{
     color: blue;
