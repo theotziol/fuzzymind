@@ -62,7 +62,7 @@ def sidebar_widgets_show_df():
 
 def sidebar_logo():
     # Footer
-    logo = Image.open("imgs\\FCM-APP logo.png")
+    logo = Image.open("imgs\\FuzzyMind logo -cropped.png")
     st.sidebar.image(logo, use_column_width=True)
 
 

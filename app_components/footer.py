@@ -5,6 +5,7 @@ def footer_markdown():
     color: blue;
     background-color: transparent;
     text-decoration: underline;
+    margin-top: 10px;
     }
     
     a:hover,  a:active {
@@ -24,8 +25,7 @@ def footer_markdown():
     }
     </style>
     <div class="footer">
-    <p>Developed by <a style='display: block; text-align: center;' href="https://github.com/theotziol" >Theodoros Tziolas</a></p>
-    <p>B.Sc. Electrical Engineering, M.Sc. Energy and Automation Systems, Ph.D. in Artificial Intelligence</p>
+    <p><a style='display: block; text-align: center;' href="https://acta.energy.uth.gr/">ACTA Lab</a></p>
     
     </div>
     """

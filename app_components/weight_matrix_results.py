@@ -83,6 +83,7 @@ def weight_matrix_widgets_neuralfcm(model, x_test, y_test):
         plot_matrix = denoise_matrix(
             model.predicted_matrices[index, :, :, 0], x_test.columns, y_test
         )
+
         col_df, col_fig = st.columns(2)
         with col_df:
             st.dataframe(plot_matrix)
@@ -119,12 +120,23 @@ def weight_matrix_widgets_neuralfcm(model, x_test, y_test):
         help="Visualize the ranges of the predicted weight matrices.",
     )
     if average_boolean:
-        st.pyplot(
-            calculate_and_plot_stats_of_matrices(
-                model.predicted_matrices, x_test.columns, y_test, "Statistic Values"
-            ),
-            dpi=900,
-        )
+        if st.session_state.learning_task == "Classification":
+            st.pyplot(
+                calculate_and_plot_stats_of_matrices(
+                    model.predicted_matrices, x_test.columns, y_test, "Statistic Values"
+                ),
+                dpi=900,
+            )
+        else:
+            st.pyplot(
+                calculate_and_plot_stats_of_matrices(
+                    model.predicted_matrices,
+                    x_test.columns,
+                    np.zeros((len(y_test), len(st.session_state.output_columns))),
+                    "Statistic Values",
+                ),
+                dpi=900,
+            )
 
 
 @st.cache_data
@@ -134,6 +146,11 @@ def denoise_matrix(array, _columns, y_test):
     # array = np.fill_diagonal(array.copy(), 0.0)
     for i in range(array.shape[0]):
         array[i, i] = 0.0
-    for i in range(y_test.shape[-1]):
-        array[-(i + 1), :] = 0.0
+
+    if st.session_state.learning_task == "Classification":
+        for i in range(y_test.shape[-1]):
+            array[-(i + 1), :] = 0.0
+    else:
+        for i in range(y_test.shape[-1]):
+            array[-len(st.session_state.output_columns), :] = 0.0
     return pd.DataFrame(array, columns=_columns, index=_columns)

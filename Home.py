@@ -7,7 +7,7 @@ import tensorflow as tf
 
 # Page Configuration
 st.set_page_config(
-    page_title="FCM-App",
+    page_title="FuzzyMind",
     page_icon="🧠",
     layout="wide",
     menu_items={
@@ -32,7 +32,9 @@ st.markdown(
 )
 
 # Header Section
-st.markdown('<p class="main-title">Welcome to FCM-App! 👋</p>', unsafe_allow_html=True)
+st.markdown(
+    '<p class="main-title">Welcome to FuzzyMind! 🧠</p>', unsafe_allow_html=True
+)
 st.markdown(
     '<p class="subtext">An AI-powered tool for decision-making using <span class="highlight">Fuzzy Cognitive Maps</span> and Deep Learning.</p>',
     unsafe_allow_html=True,
@@ -41,15 +43,14 @@ st.markdown(
 # About Section
 st.markdown(
     """
-    ### 🔍 What is FCM-App?
-    FCM-App is an open-source web application built with the [Streamlit](https://docs.streamlit.io) framework. It enables **Artificial Intelligence (AI)-driven decision-making** by utilizing:
+    ### 🔍 What is FuzzyMind?
+    FuzzyMind is an open-source web application built with the [Streamlit](https://docs.streamlit.io) framework. It enables **Artificial Intelligence (AI)-driven decision-making** by utilizing:
     
     - 🧠 **Fuzzy Cognitive Maps (FCM) for modeling complex systems**
-    - ⚡ **Neural-FCM algorithm** for optimizing weight matrices
+    - ⚡ **Neural-FCM algorithm** for optimizing weight learning and structure modeling.
 
     **👈 Use the sidebar** to explore the app’s features!
 
-     Developed by **Dr. Theodoros Tziolas** under the guidance of [Prof. Elpiniki Papageorgiou](https://www.energy.uth.gr/index.php/en/personnel/papageorgiou-elpiniki.html), director of [ACTA](https://acta.energy.uth.gr/) laboratory, of University of Thessaly.
     """
 )
 
@@ -61,7 +62,7 @@ st.markdown(
     - 📧 Contact via [email](mailto:ttziolas@uth.gr)
     - 🚀 Check out more projects on [GitHub](https://github.com/theotziol)
     - 🔬 Explore research from [ACTA Lab](https://acta.energy.uth.gr/)
-    - 🤝 Contribute! We welcome new FCM learning algorithms such as **population-based** and **Hebbian-based methods**.
+    - 🤝 Contribute! We welcome the contribution of FCM learning algorithms such as **population-based** and **Hebbian-based methods**.
     """
 )
 # Centered Image
@@ -71,5 +72,8 @@ st.image(image, use_column_width=True)
 sidebar_help_home()
 sidebar_logo()
 
+st.markdown(
+    """Developed by [Theodoros Tziolas](https://github.com/theotziol) under the guidance of [Prof. Elpiniki Papageorgiou](https://www.energy.uth.gr/index.php/en/personnel/papageorgiou-elpiniki.html), director of [ACTA](https://acta.energy.uth.gr/) laboratory, of University of Thessaly."""
+)
 # Footer
 st.markdown(footer_markdown(), unsafe_allow_html=True)
