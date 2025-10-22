@@ -37,7 +37,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 st.markdown(
-    "<h3 style='text-align: center; color: #666;'>FCM Lab: Experimenting using linguistic variables and fuzzy sets theory for FCM Construction and inference!</h3><hr>",
+    "<h3 style='text-align: center; color: #666;'>Experimenting using linguistic variables and fuzzy sets theory for FCM Construction and inference!</h3><hr>",
     unsafe_allow_html=True,
 )
 
@@ -62,6 +62,7 @@ with tab_design:
         horizontal=True,
     )
     if mode == "Design Manually":
+        sidebar_help_design_linguistic()
         dic_final = fuzzy_sets()
         edited_matrix, exists = manual_tab_linguistic(dic_final)
         if exists:
@@ -80,6 +81,7 @@ with tab_design:
             # st.download_button('Download fuzzy mfs as json', data= convert_df(edited_matrix), file_name=file_name + '.json', mime="text/csv")
 
     elif mode == "File Upload":
+        sidebar_help_design_with_upload_linguistic()
         edited_matrix, file, dic_final = matrix_upload()
         if edited_matrix is not None and dic_final is not None:
             print(edited_matrix)
@@ -96,6 +98,7 @@ with tab_design:
                 graph(edited_matrix, False)
 
     elif mode == "Knowledge Aggregation":
+        sidebar_help_knowledge_aggregation()
         dic_uploads = matrices_upload()
         if dic_uploads is not None:
             dummy_df, stored_mfs = aggregation_info_display(dic_uploads)

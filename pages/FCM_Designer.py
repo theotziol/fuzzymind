@@ -42,7 +42,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 st.markdown(
-    "<h3 style='text-align: center; color: #666;'>FCM Lab: Construct an FCM manually, or upload a predifened FCM, and perform inference!</h3><hr>",
+    "<h3 style='text-align: center; color: #666;'>Construct an FCM manually, or upload a predifened FCM, and perform inference!</h3><hr>",
     unsafe_allow_html=True,
 )
 
@@ -64,6 +64,7 @@ with tab_design:
     )
 
     if mode == "🎨 Design Manually":
+        sidebar_help_design_manually()
         edited_matrix, exists = manual_tab()
         if exists:
             graph_boolean = st.toggle("Generate FCM graph", False)
@@ -72,6 +73,7 @@ with tab_design:
             matrix_exist = True
 
     else:
+        sidebar_help_design_with_upload()
         edited_matrix, file = matrix_upload()
         if edited_matrix is not None:
             matrix_exist = True

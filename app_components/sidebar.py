@@ -92,3 +92,94 @@ def sidebar_help_learning():
     Need more help? [📖 Read the Manual](https://github.com/theotziol/fcm-app/blob/master/Manual.docx)
     """
     )
+
+
+def sidebar_help_design_manually():
+    st.sidebar.markdown(
+        """
+    ## 🏗️ How to use
+    1. Define FCM concepts.
+    2. Define weighted interconnections.
+    3. See and modify the graph.
+    4. Select inference parameters.
+    5. Initialize concept values.
+    6. Perform inference for what-if scenarios.
+    ---
+    Use the help (?) icon to understand widgets' functionality
+
+    Need more help? [📖 Read the Manual](https://github.com/theotziol/fcm-app/blob/master/Manual.docx)
+    """
+    )
+
+
+def sidebar_help_design_linguistic():
+    st.sidebar.markdown(
+        """
+    ## 🏗️ How to use
+    1. Define FCM concepts.
+    2. Define causual interconnections.
+    3. See and modify the graph.
+    4. Defuzzify weights.
+    5. Select inference parameters.
+    6. Initialize concept values.
+    7. Perform inference for what-if scenarios.
+    ---
+    Use the help (?) icon to understand widgets' functionality
+
+    Need more help? [📖 Read the Manual](https://github.com/theotziol/fcm-app/blob/master/Manual.docx)
+    """
+    )
+
+
+def sidebar_help_design_with_upload():
+    st.sidebar.markdown(
+        """
+    ## 🏗️ How to use
+    1. Upload an FCM as .csv.
+    2. See and modify the graph.
+    3. Select inference parameters.
+    4. Initialize concept values.
+    5. Perform inference for what-if scenarios.
+    ---
+    Use the help (?) icon to understand widgets' functionality
+
+    Need more help? [📖 Read the Manual](https://github.com/theotziol/fcm-app/blob/master/Manual.docx)
+    """
+    )
+
+
+def sidebar_help_design_with_upload_linguistic():
+    st.sidebar.markdown(
+        """
+    ## 🏗️ How to use
+    1. Upload an FCM as .csv and MFs in as .json.
+    2. Defuzzify causual interconnections.
+    3. See and modify the graph.
+    4. Select inference parameters.
+    5. Initialize concept values.
+    6. Perform inference for what-if scenarios.
+    ---
+    Use the help (?) icon to understand widgets' functionality
+
+    Need more help? [📖 Read the Manual](https://github.com/theotziol/fcm-app/blob/master/Manual.docx)
+    """
+    )
+
+
+def sidebar_help_knowledge_aggregation():
+    st.sidebar.markdown(
+        """
+    ## 🏗️ How to use
+    1. Upload multiple FCMs, MFs pairs as .csv and .json.
+    2. Check the aggregated causual interconnections
+    2. Defuzzify causual interconnections.
+    3. See and modify the graph.
+    4. Select inference parameters.
+    5. Initialize concept values.
+    6. Perform inference for what-if scenarios.
+    ---
+    Use the help (?) icon to understand widgets' functionality
+
+    Need more help? [📖 Read the Manual](https://github.com/theotziol/fcm-app/blob/master/Manual.docx)
+    """
+    )
