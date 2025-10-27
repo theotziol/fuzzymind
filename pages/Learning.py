@@ -187,3 +187,4 @@ with learning_tab:
             )
 
 sidebar_widgets_show_df()
+sidebar_logo()

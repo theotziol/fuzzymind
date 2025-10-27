@@ -11,6 +11,7 @@ In the current version, the software offers the following features:
 6. FCM learning for classification tasks (Neural-FCM classifier)
 7. FCM learning for regression tasks (Neural-FCM regressor)
 Demos for these features can be found in the Manual.docx file.  
+
   
 ## Installation Instructions (Local Setup)
 
@@ -78,31 +79,8 @@ To run this application inside a Docker container, follow these steps:
 
 Make sure you have Docker installed on your system. You can download and install Docker from [here](https://www.docker.com/get-started).
 
-### 2. Create a Dockerfile
 
-Add the following `Dockerfile` in your project directory:
-
-```dockerfile
-# Use an official Python runtime as a parent image
-FROM python:3.10
-
-# Set the working directory in the container
-WORKDIR /app
-
-# Copy the current directory contents into the container at /app
-COPY . /app
-
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Expose the Streamlit port
-EXPOSE 8501
-
-# Command to run the Streamlit app
-CMD ["streamlit", "run", "Home.py", "--server.port=8501", "--server.address=0.0.0.0"]
-```
-
-### 3. Build and Run the Docker Container
+### 2. Build and Run the Docker Container
 
 #### a. Build the Docker image
 
@@ -132,3 +110,11 @@ Feel free to open an issue or submit a pull request if you have any suggestions 
 
 This project is licensed under the MIT License. See the `LICENSE` file for details.
 
+
+## Caveats
+
+The app was developed with TensorFlow version 2.9.1 which supports CUDA acceleration on Windows, and Streamlit version 1.33.0. These 2 libraries have an unmatched dependency, the protobuf library. Using **--use-deprecated=legacy-resolver** in **pip install** command currently solves this issue. If you are running a different OS, or you don't have/need CUDA-GPU deep learning accelerations, consider installing the latest versions.  
+
+## Found us
+
+This app was developed by Theodoros Tziolas during his PhD studies and under the guidance of Professor Elpiniki Papageorgiou and is a property of the [ACTA Lab](https://acta.energy.uth.gr/). Visit our lab website to discover more great projects or request collaboration. 

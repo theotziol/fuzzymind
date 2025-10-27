@@ -41,23 +41,23 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-tab_design, tab_inference = st.tabs(["FCM Design", "Inference"])
+tab_design, tab_inference = st.tabs(["Linguistic FCM Design", "Inference"])
 
 matrix_exist = False
 
 # Code for tab expert
 with tab_design:
     st.subheader(
-        "Construct the FCM and the fuzzy sets manually, upload a weight matrix file, or upload multiple weight matrices for knowledge aggregation",
+        "Construct the FCM and Fuzzy Sets Manually, Import Files, or Aggregate Knowledge from Multiple Experts.",
         divider="blue",
     )
     mode = st.radio(
         "Select the designing mode",
         ["Design Manually", "File Upload", "Knowledge Aggregation"],
         captions=[
-            "Define concepts and interconnections manually",
-            "Upload a .csv that contains the weight matrix",
-            "Upload multiple .csv files for knowledge aggregation",
+            "Define concepts and linguistic causal relations from scratch.",
+            "Import a weight matrix and Fuzzy Membership Functions via paired .csv and .json files.",
+            "Aggregate knowledge from multiple experts using paired .csv and .json files.",
         ],
         horizontal=True,
     )
@@ -71,7 +71,7 @@ with tab_design:
                 graph(edited_matrix, True)
             matrix_exist = True
             edited_matrix = defuzzification_single(edited_matrix, dic_final)
-            st.caption("Deffuzzified weight matrix")
+            st.caption("Defuzzified weight matrix")
             st.dataframe(edited_matrix)
             graph_boolean_defuz = st.toggle("Generate FCM graph (Defuzzified)", False)
             if graph_boolean_defuz:
@@ -91,7 +91,7 @@ with tab_design:
                 graph(edited_matrix, True)
             matrix_exist = True
             edited_matrix = defuzzification_single(edited_matrix, dic_final)
-            st.caption("Deffuzzified weight matrix")
+            st.caption("Defuzzified weight matrix")
             st.dataframe(edited_matrix)
             graph_boolean_defuz = st.toggle("Generate FCM graph (Defuzzified)", False)
             if graph_boolean_defuz:
@@ -102,7 +102,7 @@ with tab_design:
         dic_uploads = matrices_upload()
         if dic_uploads is not None:
             dummy_df, stored_mfs = aggregation_info_display(dic_uploads)
-            edited_matrix = deffuzification_widgets(dummy_df, stored_mfs)
+            edited_matrix = defuzification_widgets(dummy_df, stored_mfs)
             matrix_exist = True
             graph_boolean = st.toggle("Generate FCM graph (Defuzzified)", False)
             if graph_boolean:
@@ -137,3 +137,5 @@ with tab_inference:
                     placeholder.empty()
     else:
         non_matrix_definition()
+
+sidebar_logo()

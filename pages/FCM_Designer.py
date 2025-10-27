@@ -114,3 +114,5 @@ with tab_inference:
 
     else:
         non_matrix_definition()
+
+sidebar_logo()
