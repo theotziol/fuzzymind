@@ -36,7 +36,7 @@ def sidebar_widgets_task():
     else:
         st.sidebar.info("Import data to continue", icon="ℹ️")
     sidebar_help_learning()
-    sidebar_logo()
+    # sidebar_logo()
 
 
 def sidebar_widgets_show_df():
