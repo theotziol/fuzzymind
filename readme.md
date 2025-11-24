@@ -45,10 +45,10 @@ App\Scripts\activate
 
 #### a. Unzip the `fcm-app-master.zip` file inside the `App` folder
 
-#### b. Install required Python libraries using the `requirements.txt` file
+#### b. Install required Python libraries using the `requirements-gpu.txt` file
 
 ```sh
-pip install --use-deprecated=legacy-resolver -r App\requirements.txt
+pip install --use-deprecated=legacy-resolver -r App\requirements-gpu.txt
 ```
 
 ### 3. Run the Application
@@ -114,7 +114,7 @@ This project is licensed under APACHE 2.0. See the `LICENSE.txt` file for detail
 
 ## Caveats
 
-The app was developed with TensorFlow version 2.9.1 which supports CUDA acceleration on Windows, and Streamlit version 1.33.0. These 2 libraries have an unmatched dependency, the protobuf library. Using **--use-deprecated=legacy-resolver** in **pip install** command currently solves this issue. *If you are running a different OS, or you don't have/need CUDA-GPU deep learning accelerations, consider installing the latest versions*.  
+The app was developed with TensorFlow version 2.9.1 which supports CUDA acceleration on Windows, and Streamlit version 1.33.0. These 2 libraries have an unmatched dependency, the protobuf library. Using **--use-deprecated=legacy-resolver** in **pip install** command currently solves this issue. *If you are running a different OS, or you don't have/need CUDA-GPU deep learning accelerations, consider installing the latest versions with the `requirements.txt` file*.  
 
 ## Found us
 
