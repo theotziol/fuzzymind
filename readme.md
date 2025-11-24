@@ -110,8 +110,7 @@ Feel free to open an issue or submit a pull request if you have any suggestions 
 
 ## License
 
-This project is licensed under LGPL 3.0. See the `LICENSE.txt` file for details. 
-
+This project is licensed under APACHE 2.0. See the `LICENSE.txt` file for details. 
 
 ## Caveats
 
