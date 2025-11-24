@@ -1,6 +1,6 @@
-# FCM-APP
+# FuzzyMind
 
-FCM-APP offers a flexible and intuitive user interface for Fuzzy Cognitive Map (FCM) construction, analysis, visualization, and weight matrix optimization. The software is entirely written in Python, utilizing open-source packages such as Streamlit, TensorFlow, Pandas, Numpy, NetworkX, and Matplotlib.
+**FuzzyMind** app offers a flexible and intuitive user interface for Fuzzy Cognitive Map (FCM) construction, analysis, visualization, and weight matrix optimization. The software is entirely written in Python, utilizing open-source packages such as Streamlit, TensorFlow, Pandas, Numpy, NetworkX, and Matplotlib.
 In the current version, the software offers the following features:
 
 1. Manual construction of both numeric and linguistic FCMs
@@ -10,9 +10,11 @@ In the current version, the software offers the following features:
 5. Data preprocessing tools
 6. FCM learning for classification tasks (Neural-FCM classifier)
 7. FCM learning for regression tasks (Neural-FCM regressor)
-Demos for these features can be found in the Manual.docx file.  
 
-  
+Demos for these features can be found in the `Manual.docx` file. A publication manuscript is under internal revision.
+
+**Developed by [ACTA Lab Team](https://acta.energy.uth.gr/)**
+
 ## Installation Instructions (Local Setup)
 
 To install and run the Streamlit application locally, follow these steps:
@@ -108,13 +110,13 @@ Feel free to open an issue or submit a pull request if you have any suggestions 
 
 ## License
 
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+This project is licensed under LGPL 3.0. See the `LICENSE.txt` file for details. 
 
 
 ## Caveats
 
-The app was developed with TensorFlow version 2.9.1 which supports CUDA acceleration on Windows, and Streamlit version 1.33.0. These 2 libraries have an unmatched dependency, the protobuf library. Using **--use-deprecated=legacy-resolver** in **pip install** command currently solves this issue. If you are running a different OS, or you don't have/need CUDA-GPU deep learning accelerations, consider installing the latest versions.  
+The app was developed with TensorFlow version 2.9.1 which supports CUDA acceleration on Windows, and Streamlit version 1.33.0. These 2 libraries have an unmatched dependency, the protobuf library. Using **--use-deprecated=legacy-resolver** in **pip install** command currently solves this issue. *If you are running a different OS, or you don't have/need CUDA-GPU deep learning accelerations, consider installing the latest versions*.  
 
 ## Found us
 
-This app was developed by Theodoros Tziolas during his PhD studies and under the guidance of Professor Elpiniki Papageorgiou and is a property of the [ACTA Lab](https://acta.energy.uth.gr/). Visit our lab website to discover more great projects or request collaboration. 
+This app was developed by Theodoros Tziolas during his PhD studies and under the guidance of Professor [Elpiniki Papageorgiou](https://www.energy.uth.gr/www/index.php/en/personnel/papageorgiou-elpiniki) and is a property of the [ACTA Lab](https://acta.energy.uth.gr/). Visit our lab website to discover more great projects or to request collaboration. 
