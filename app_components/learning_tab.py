@@ -240,7 +240,7 @@ def parameters_tab_pso():
                 500,
                 100,
                 10,
-                key=pop_size,
+                key="pop_size",
                 help="The particles population, or the number of matrices that will be initialized.",
             )
             st.slider("Iterations", 50, 500, 250, 10, key=num_iter, help=help_pso_iter)
@@ -479,7 +479,9 @@ def learning_neuralfcm_classification_KFold():
 
 
 def learning_pso_classification():
-    st.info("PSO is under construction")
+    st.info(
+        "TensorFlow PSO implementation is currently unsteady, we welcome contributions"
+    )
 
 
 ### Regression learning methods
