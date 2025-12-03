@@ -167,7 +167,9 @@ def outlier_removal():
     with st.expander("Parameters...", expanded=False):
         st.info("Currently only statistic based removal is supported")
 
-        numerical_cols = df.select_dtypes(include=np.number).columns.tolist()
+        numerical_cols = st.session_state.working_df.select_dtypes(
+            include=np.number
+        ).columns.tolist()
         # not_plotting = ("object", "bool")
         # columns = [
         #     col
