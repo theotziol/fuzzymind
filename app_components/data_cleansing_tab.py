@@ -166,12 +166,15 @@ def outlier_removal():
     st.subheader("Outlier removal", divider="gray")
     with st.expander("Parameters...", expanded=False):
         st.info("Currently only statistic based removal is supported")
-        not_plotting = ("object", "bool")
-        columns = [
-            col
-            for col in st.session_state.working_df.columns
-            if col not in not_plotting
-        ]
+
+        numerical_cols = df.select_dtypes(include=np.number).columns.tolist()
+        # not_plotting = ("object", "bool")
+        # columns = [
+        #     col
+        #     for col in st.session_state.working_df.columns
+        #     if col not in not_plotting
+        # ]
+        columns = numerical_cols
         column = st.selectbox("Select column for filtering", columns, None)
         if column is not None:
             array = st.session_state.working_df[column].to_numpy()
