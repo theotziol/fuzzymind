@@ -51,7 +51,7 @@ class neural_fcm:
         loss,
         regresion_loss_weights=[0.95, 10.0, 1.0],
         classification_loss_weights=[
-            1.5,
+            2.0,
             1.0,
             1.0,
         ],  # in experiments were  [2.0, 1.0, 1.0]
@@ -210,12 +210,10 @@ class neural_fcm:
         cce = tf.keras.losses.CategoricalCrossentropy()
         w1, w2, w3 = self.classification_loss_weights
         error1 = cce(softoutputs, y)
-        # error2 = tf.math.reduce_mean(tf.math.square(diagonal))
-        # error3 = tf.math.reduce_mean(
-        #     tf.math.square(predicted[:, -self.output_concepts :, :, 0])
-        # )  # the output concept
-        error2 = tf.math.reduce_mean(diagonal)
-        error3 = tf.math.reduce_mean(predicted[:, -self.output_concepts :, :, 0])
+        error2 = tf.math.reduce_mean(tf.math.square(diagonal))
+        error3 = tf.math.reduce_mean(
+            tf.math.square(predicted[:, -self.output_concepts :, :, 0])
+        )  # the output concept
         error = (w1 * error1) + (w2 * error2) + (w3 * error3)
         return error
 
