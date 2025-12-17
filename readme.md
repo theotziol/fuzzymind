@@ -90,10 +90,10 @@ Make sure you have Docker installed on your system. You can download and install
 docker build -t fcm-app .
 ```
 
-#### b. Run the container
+#### b. Run the container (With hot reloading)
 
 ```sh
-docker run -p 8501:8501 fcm-app
+docker run -p 8501:8501 -v ${PWD}:/app fcm-app
 ```
 
 Now, access the application in your web browser at:

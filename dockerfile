@@ -7,7 +7,11 @@ WORKDIR /app
 COPY . /app
 
 # Install dependencies
-RUN pip install --use-deprecated=legacy-resolver -r requirements.txt
+# Run this command if you are on Windows and you want to use GPU compatible TensorFlow
+RUN pip install --use-deprecated=legacy-resolver -r requirements-gpu.txt
+# Run this command if no GPU is available. It installs all the latest compatible versions
+# RUN pip install requirements.txt
+
 
 # Expose the Streamlit port
 EXPOSE 8501
