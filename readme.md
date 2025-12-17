@@ -43,7 +43,7 @@ App\Scripts\activate
 
 ### 2. Install Dependencies
 
-#### a. Unzip the `fcm-app-master.zip` file inside the `App` folder
+#### a. Unzip the `fuzzymind-master.zip` file inside the `App` folder
 
 #### b. Install required Python libraries using the `requirements-gpu.txt` file
 
@@ -87,13 +87,13 @@ Make sure you have Docker installed on your system. You can download and install
 #### a. Build the Docker image
 
 ```sh
-docker build -t fcm-app .
+docker build -t fuzzymind .
 ```
 
 #### b. Run the container (With hot reloading)
 
 ```sh
-docker run -p 8501:8501 -v ${PWD}:/app fcm-app
+docker run -p 8501:8501 -v ${PWD}:/app fuzzymind
 ```
 
 Now, access the application in your web browser at:
