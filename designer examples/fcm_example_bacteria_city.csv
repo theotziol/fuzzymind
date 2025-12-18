@@ -1,0 +1,8 @@
+﻿-,C1 Num_people,C2 Migration,C3 Modernization,C4 Garbage,C5 Sanitation,C6 Num_diseases,C7 Bacteria
+C1 Num_people,0,0,0.6,0.9,0,0,0
+C2 Migration,0.1,0,0,0,0,0,0
+C3 Modernization,0,0.7,0,0,0.9,0,0
+C4 Garbage,0,0,0,0,0,0,0.9
+C5 Sanitation,0,0,0,0,0,-0.9,-0.9
+C6 Num_diseases,-0.3,0,0,0,0,0,0
+C7 Bacteria,0,0,0,0,0,0.8,0

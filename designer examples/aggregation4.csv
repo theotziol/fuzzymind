@@ -1,0 +1,5 @@
+﻿-,name of concept 1,name of concept 2,name of concept 3,name of concept 4
+name of concept 1,None,-Medium,+Low,+Low
+name of concept 2,+Low,None,None,None
+name of concept 3,None,None,None,None
+name of concept 4,+Medium,None,+Medium,None
