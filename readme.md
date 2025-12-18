@@ -21,7 +21,8 @@ To install and run the Streamlit application locally, follow these steps:
 
 ### 1. Set Up a Virtual Environment
 
-It is recommended to install the required Python libraries in a virtual environment to avoid conflicts with other installed libraries.
+It is recommended to install the required Python libraries in a virtual environment to avoid conflicts with other installed libraries. The app was developed with **Python 3.10**; it is recommended to use the same version. Download the latest Python 3.10 from [here](https://www.python.org/downloads/release/python-31019/) and add it to the Path (Windows). 
+
 
 #### a. Open a command prompt and navigate to your desired location
 
@@ -84,13 +85,39 @@ Make sure you have Docker installed on your system. You can download and install
 
 ### 2. Build and Run the Docker Container
 
+Open your terminal:
+
+Windows: Press Win + R, type cmd (or powershell), and press Enter.
+
+Mac/Linux: Open your Terminal app. 
+
+Change directory (cd) to the project folder: (Replace the path below with the actual location where you unzipped the project)
+
 #### a. Build the Docker image
 
 ```sh
 docker build -t fuzzymind .
 ```
 
+***Note: Make sure Docker is installed and running***
+
+
 #### b. Run the container (With hot reloading)
+
+
+**For Windows Command Prompt (cmd):**
+
+```sh
+docker run -p 8501:8501 -v %cd%:/app fuzzymind
+```
+
+**For Windows PowerShell:**
+
+```sh
+docker run -p 8501:8501 -v ${PWD}:/app fuzzymind
+```
+
+**For Linux / Mac:**
 
 ```sh
 docker run -p 8501:8501 -v ${PWD}:/app fuzzymind
