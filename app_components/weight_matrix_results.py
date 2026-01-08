@@ -10,6 +10,7 @@ import sys
 sys.path.insert(1, "../fcm_codes")
 sys.path.insert(1, "../app_components")
 from fcm_codes.graphs import *
+from fcm_codes.preprocessing import reverse_min_max
 from app_components.fcm_graph_component import *
 
 
@@ -42,7 +43,9 @@ def weight_matrix_widgets_neuralfcm(model, x_test, y_test):
             "Select an instance from the test dataset", 0, len(x_test) - 1, 0
         )
         st.caption(f"Input: Testing instance {index}")
-        st.dataframe(x_test.iloc[index])
+        values_dictionairy = {"Normalized" : x_test.iloc[index].to_numpy(), "Original" : reverse_min_max(x_test, st.session_state.non_norm_working_df).iloc[index].to_numpy()}
+        show_df = pd.DataFrame(values_dictionairy, index=x_test.columns)
+        st.dataframe(show_df)
         ### to do change the st.write for regression-forecasting
         if st.session_state.learning_task == "Classification":
             st.write(

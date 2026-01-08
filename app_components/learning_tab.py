@@ -109,7 +109,7 @@ def parameters_tab_neural_fcm():
             disabled = True
             fcm_iter = st.session_state.timestep_num
             help_fcm_iter = help_fcm_iter_timeseries
-
+    st.markdown("Learn more about Neural-FCM parameters in the official [paper](https://link.springer.com/article/10.1007/s10489-025-06795-6)")
     with st.expander(
         "Neural-FCM parameters...", expanded=not st.session_state.training_finished
     ):

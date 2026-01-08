@@ -114,7 +114,7 @@ docker run -p 8501:8501 -v %cd%:/app fuzzymind
 **For Windows PowerShell:**
 
 ```sh
-docker run -p 8501:8501 -v ${PWD}:/app fuzzymind
+docker run -p 8501:8501 -v ${PWD}:/app fuzzymind streamlit run Home.py --server.fileWatcherType=poll
 ```
 
 **For Linux / Mac:**

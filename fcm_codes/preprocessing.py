@@ -12,6 +12,14 @@ def min_max_scaling(df):
 
     return df_norm
 
+def reverse_min_max(df_norm, df_non_norm):
+    df = df_norm.copy()
+    for column in df_norm.columns:
+        df[column] = df[column] * (df_non_norm[column].max()-df_non_norm[column].min()) + df_non_norm[column].min()
+
+    return df
+
+
 def split_df(df_normalized, ratio = 0.8, numpy = True):
     '''
     Splits the dataframe into training/testing datasets

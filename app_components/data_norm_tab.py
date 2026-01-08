@@ -41,10 +41,12 @@ def data_normalization():
 
         if method == "Min-Max Normalization":
             apply_changes = st.button(
-                "Apply normalization", on_click=apply_min_max_callback
+                "Apply normalization", on_click=apply_min_max_callback, disabled = st.session_state.normalized
             )
             if apply_changes:
                 st.success("Dataset was succesfully normalized.")
+            if st.session_state.normalized:
+                st.info("Dataset has been normalized...")
         elif method == "Standard Scaler":
             # warn and disable as it has not been tested with standarization
             st.warning(

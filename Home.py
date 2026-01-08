@@ -66,8 +66,8 @@ st.markdown(
     """
 )
 # Centered Image
-image = Image.open("imgs/AdobeStock_320559014.jpeg")
-st.image(image, use_column_width=True)
+# image = Image.open("imgs/AdobeStock_320559014.jpeg")
+# st.image(image, use_column_width=True)
 # Sidebar Enhancement
 sidebar_help_home()
 sidebar_logo()
