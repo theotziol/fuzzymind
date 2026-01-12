@@ -67,31 +67,15 @@ def weight_matrix_widgets_neuralfcm(model, x_test, y_test):
     with col2:
         fig_size = st.slider("Change figure size", 2, 14, 5)
         size = st.slider("Change figure text size", 4, 30, 8)
-        fig, axs = plt.subplots(figsize=(fig_size, fig_size))
-        im, cbar = heatmap(
-            model.predicted_matrices[index, :, :, 0],
-            x_test.columns,
-            x_test.columns,
-            ax=axs,
-            cmap="coolwarm",
-        )
-        texts = annotate_heatmap(im, size)
-        st.caption("FCM weight matrix.")
-        st.pyplot(fig, dpi=500)
-    denoise_boolean = st.toggle(
+        denoise_boolean = st.toggle(
         "Denoise matrix",
         help="It sets the diagonal and the class rows to zero (0) values",
-    )
-    if denoise_boolean:
-        plot_matrix = denoise_matrix(
-            model.predicted_matrices[index, :, :, 0], x_test.columns, y_test
         )
-
-        col_df, col_fig = st.columns(2)
-        with col_df:
-            st.dataframe(plot_matrix)
-        with col_fig:
-            fig, axs = plt.subplots(figsize=(fig_size, fig_size))
+        fig, axs = plt.subplots(figsize=(fig_size, fig_size))
+        if denoise_boolean:
+            plot_matrix = denoise_matrix(
+            model.predicted_matrices[index, :, :, 0], x_test.columns, y_test
+            )
             im, cbar = heatmap(
                 plot_matrix.to_numpy(),
                 x_test.columns,
@@ -102,15 +86,29 @@ def weight_matrix_widgets_neuralfcm(model, x_test, y_test):
             texts = annotate_heatmap(im, size)
             st.pyplot(fig, dpi=700)
             st.caption("Denoised FCM weight matrix.")
-
-    # st.dataframe(pd.DataFrame(model.predicted_matrices[index, :, :, 0], columns = x_test.columns,index = x_test.columns))# index = x_test.columns
-    else:
-        plot_matrix = pd.DataFrame(
+        else:
+            plot_matrix =  pd.DataFrame(
             np.round(model.predicted_matrices[index, :, :, 0], 2),
             columns=x_test.columns,
             index=x_test.columns,
         )
-        st.dataframe(plot_matrix)
+            im, cbar = heatmap(
+                model.predicted_matrices[index, :, :, 0],
+                x_test.columns,
+                x_test.columns,
+                ax=axs,
+                cmap="coolwarm",
+            )
+            texts = annotate_heatmap(im, size)
+            st.pyplot(fig, dpi=500)
+            st.caption("FCM weight matrix.")
+        
+    st.caption("Denoised FCM weight matrix.")
+    st.dataframe(plot_matrix)
+            
+
+    # st.dataframe(pd.DataFrame(model.predicted_matrices[index, :, :, 0], columns = x_test.columns,index = x_test.columns))# index = x_test.columns
+
 
     graph_boolean = st.toggle(
         "Generate FCM graph", help="Visualize as a graph the weight matrix."
@@ -132,16 +130,39 @@ def weight_matrix_widgets_neuralfcm(model, x_test, y_test):
                 ),
                 dpi=500,
             )
+            
         else:
             st.pyplot(
                 calculate_and_plot_stats_of_matrices(
                     model.predicted_matrices,
                     x_test.columns,
                     np.zeros((len(y_test), len(st.session_state.output_columns))),
-                    "Statistic Values",
+                    "Statistic Values", figsize=(2*fig_size_av + 1, fig_size_av), size=size_av
                 ),
                 dpi=700,
             )
+            
+        show_tables_statistics = st.toggle("Show tables", help = "Matrices as tables", key="show_average_tables")
+        if show_tables_statistics:
+            if st.session_state.learning_task == "Classification":
+                mean_df, std_df = calculate_and_plot_stats_of_matrices(
+                    model.predicted_matrices, x_test.columns, y_test, "Statistic Values", figsize=(2*fig_size_av + 1, fig_size_av), size=size_av, return_tables=True
+                )
+            else:
+                mean_df, std_df = calculate_and_plot_stats_of_matrices(
+                    model.predicted_matrices,
+                    x_test.columns,
+                    np.zeros((len(y_test), len(st.session_state.output_columns))),
+                    "Statistic Values", figsize=(2*fig_size_av + 1, fig_size_av), size=size_av, return_tables=True
+                )
+            col1_mean, col2_std = st.columns(2)
+            with col1_mean:
+                st.caption("Average values across testing samples")
+                st.dataframe(mean_df)
+            with col2_std:
+                st.caption("standard deviation values across testing samples")
+                st.dataframe(std_df)
+            
 
 
 @st.cache_data

@@ -192,7 +192,7 @@ def annotate_heatmap(
 #     plt.show()
 
 
-def calculate_and_plot_stats_of_matrices(array, columns, y_test, title="", figsize = (12,5), size = 8):
+def calculate_and_plot_stats_of_matrices(array, columns, y_test, title="", figsize = (12,5), size = 8, return_tables = False):
     """
     This function compares the statistics in the weight values among the test dataset
     Args:
@@ -212,22 +212,29 @@ def calculate_and_plot_stats_of_matrices(array, columns, y_test, title="", figsi
 
     for i in range(b):
         mean_weight_matrix[:, :, i] = predicted_matrices[i, :, :, 0]
-    fig, (ax, ax2) = plt.subplots(1, 2, figsize=figsize)
+    
+    if return_tables:
+        mean_df = pd.DataFrame(np.mean(mean_weight_matrix, axis=-1),columns, columns )
+        std_df = pd.DataFrame(np.std(mean_weight_matrix, axis=-1), columns, columns)
+        return mean_df,std_df
+    else:
+        fig, (ax, ax2) = plt.subplots(1, 2, figsize=figsize)
 
-    im, cbar = heatmap(
-        np.mean(mean_weight_matrix, axis=-1), columns, columns, ax=ax, cmap="coolwarm"
-    )
-    texts = annotate_heatmap(im, size=size)
-    ax.set_title("Average matrix")
+        im, cbar = heatmap(
+            np.mean(mean_weight_matrix, axis=-1), columns, columns, ax=ax, cmap="coolwarm"
+        )
+        texts = annotate_heatmap(im, size=size)
+        ax.set_title("Average matrix")
 
-    im, cbar = heatmap(
-        np.std(mean_weight_matrix, axis=-1), columns, columns, ax=ax2, cmap="coolwarm"
-    )
-    texts = annotate_heatmap(im, size=size)
-    ax2.set_title("std matrix")
+        im, cbar = heatmap(
+            np.std(mean_weight_matrix, axis=-1), columns, columns, ax=ax2, cmap="coolwarm"
+        )
+        texts = annotate_heatmap(im, size=size)
+        ax2.set_title("std matrix")
 
-    plt.tight_layout()
-    plt.suptitle(title)
-    # plt.savefig(f'weight_matrices_water_average_std_index{index}.png', dpi = 1200)
-    # plt.show()
-    return fig
+        plt.tight_layout()
+        plt.suptitle(title)
+        # plt.savefig(f'weight_matrices_water_average_std_index{index}.png', dpi = 1200)
+        # plt.show()
+        return fig
+    
