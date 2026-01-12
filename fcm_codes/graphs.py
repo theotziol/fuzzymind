@@ -192,7 +192,7 @@ def annotate_heatmap(
 #     plt.show()
 
 
-def calculate_and_plot_stats_of_matrices(array, columns, y_test, title=""):
+def calculate_and_plot_stats_of_matrices(array, columns, y_test, title="", figsize = (12,5), size = 8):
     """
     This function compares the statistics in the weight values among the test dataset
     Args:
@@ -212,19 +212,19 @@ def calculate_and_plot_stats_of_matrices(array, columns, y_test, title=""):
 
     for i in range(b):
         mean_weight_matrix[:, :, i] = predicted_matrices[i, :, :, 0]
-    fig, (ax, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+    fig, (ax, ax2) = plt.subplots(1, 2, figsize=figsize)
 
     im, cbar = heatmap(
         np.mean(mean_weight_matrix, axis=-1), columns, columns, ax=ax, cmap="coolwarm"
     )
-    texts = annotate_heatmap(im, size=8)
+    texts = annotate_heatmap(im, size=size)
     ax.set_title("Average matrix")
 
     im, cbar = heatmap(
         np.std(mean_weight_matrix, axis=-1), columns, columns, ax=ax2, cmap="coolwarm"
     )
-    texts = annotate_heatmap(im, size=8)
-    ax2.set_title("STD matrix")
+    texts = annotate_heatmap(im, size=size)
+    ax2.set_title("std matrix")
 
     plt.tight_layout()
     plt.suptitle(title)

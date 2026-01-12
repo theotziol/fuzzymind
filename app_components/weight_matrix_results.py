@@ -65,8 +65,8 @@ def weight_matrix_widgets_neuralfcm(model, x_test, y_test):
             )
 
     with col2:
-        fig_size = st.slider("Change figure size", 2, 10, 5)
-        size = st.slider("Change figure text size", 5, 30, 8)
+        fig_size = st.slider("Change figure size", 2, 14, 5)
+        size = st.slider("Change figure text size", 4, 30, 8)
         fig, axs = plt.subplots(figsize=(fig_size, fig_size))
         im, cbar = heatmap(
             model.predicted_matrices[index, :, :, 0],
@@ -77,7 +77,7 @@ def weight_matrix_widgets_neuralfcm(model, x_test, y_test):
         )
         texts = annotate_heatmap(im, size)
         st.caption("FCM weight matrix.")
-        st.pyplot(fig, dpi=900)
+        st.pyplot(fig, dpi=500)
     denoise_boolean = st.toggle(
         "Denoise matrix",
         help="It sets the diagonal and the class rows to zero (0) values",
@@ -100,7 +100,7 @@ def weight_matrix_widgets_neuralfcm(model, x_test, y_test):
                 cmap="coolwarm",
             )
             texts = annotate_heatmap(im, size)
-            st.pyplot(fig, dpi=900)
+            st.pyplot(fig, dpi=700)
             st.caption("Denoised FCM weight matrix.")
 
     # st.dataframe(pd.DataFrame(model.predicted_matrices[index, :, :, 0], columns = x_test.columns,index = x_test.columns))# index = x_test.columns
@@ -123,12 +123,14 @@ def weight_matrix_widgets_neuralfcm(model, x_test, y_test):
         help="Visualize the ranges of the predicted weight matrices.",
     )
     if average_boolean:
+        fig_size_av = st.slider("Change figure size", 2, 14, 6, key = "average_slider_figsize")
+        size_av = st.slider("Change figure text size", 4, 30, 8, key = "average_slider_textsize")
         if st.session_state.learning_task == "Classification":
             st.pyplot(
                 calculate_and_plot_stats_of_matrices(
-                    model.predicted_matrices, x_test.columns, y_test, "Statistic Values"
+                    model.predicted_matrices, x_test.columns, y_test, "Statistic Values", figsize=(2*fig_size_av + 1, fig_size_av), size=size_av
                 ),
-                dpi=900,
+                dpi=500,
             )
         else:
             st.pyplot(
@@ -138,7 +140,7 @@ def weight_matrix_widgets_neuralfcm(model, x_test, y_test):
                     np.zeros((len(y_test), len(st.session_state.output_columns))),
                     "Statistic Values",
                 ),
-                dpi=900,
+                dpi=700,
             )
 
 
