@@ -92,7 +92,7 @@ def graph(edited_matrix, linguistic=False):
 
         layout_func = layouts[layout]
         # dpi = st.slider('DPI', 300, 1500, 600, 100, help=help_DPI)
-        dpi = 900
+        dpi = 500
         font_size = nodesize // 200
         weights_font_size = font_size
         arrowsize = weights_font_size + 2

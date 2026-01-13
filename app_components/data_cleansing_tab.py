@@ -56,7 +56,7 @@ def nan_values():
                     text_dtypes = ("object", "bool")
                     if numeric and df[column].dtype.name not in text_dtypes:
                         df.plot(y=["imputed_values", column], ax=axs)
-                        st.pyplot(fig, dpi=900)
+                        st.pyplot(fig, dpi=500)
                     submit = st.button(
                         "Submit",
                         key="submit_val",
@@ -75,7 +75,7 @@ def nan_values():
                     value = statistics_imputation_widgets(column)
                     df["imputed_values"] = df[column].fillna(value)
                     df.plot(y=["imputed_values", column], ax=axs)
-                    st.pyplot(fig, dpi=900)
+                    st.pyplot(fig, dpi=500)
                     submit = st.button(
                         "Submit",
                         key="submit_stats",
@@ -91,7 +91,7 @@ def nan_values():
                     interp_method = interpolation_imputation_widgets()
                     df["imputed_values"] = df[column].interpolate(interp_method)
                     df.plot(y=["imputed_values", column], ax=axs)
-                    st.pyplot(fig, dpi=900)
+                    st.pyplot(fig, dpi=500)
                     submit = st.button(
                         "Submit",
                         key="submit_inter",
@@ -106,7 +106,7 @@ def nan_values():
                 elif method == "Ffil":
                     df["imputed_values"] = df[column].ffill()
                     df.plot(y=["imputed_values", column], ax=axs)
-                    st.pyplot(fig, dpi=900)
+                    st.pyplot(fig, dpi=500)
                     submit = st.button(
                         "Submit",
                         key="submit_ffil",
@@ -120,7 +120,7 @@ def nan_values():
                 elif method == "Bfil":
                     df["imputed_values"] = df[column].bfill()
                     df.plot(y=["imputed_values", column], ax=axs)
-                    st.pyplot(fig, dpi=900)
+                    st.pyplot(fig, dpi=500)
                     submit = st.button(
                         "Submit",
                         key="submit_bfil",
@@ -198,7 +198,7 @@ def outlier_removal():
                 st.session_state.working_df[column].iloc[outlier_indinces],
                 c="r",
             )
-            st.pyplot(fig, dpi=900)
+            st.pyplot(fig, dpi=500)
             tb1, tb2 = st.tabs(["Convert outliers", "Delete outliers"])
             with tb1:
                 st.write("Select a replacing value for the identified outliers")

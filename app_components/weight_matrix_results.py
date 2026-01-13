@@ -84,7 +84,7 @@ def weight_matrix_widgets_neuralfcm(model, x_test, y_test):
                 cmap="coolwarm",
             )
             texts = annotate_heatmap(im, size)
-            st.pyplot(fig, dpi=700)
+            st.pyplot(fig, dpi=500)
             st.caption("Denoised FCM weight matrix.")
         else:
             plot_matrix =  pd.DataFrame(
@@ -139,7 +139,7 @@ def weight_matrix_widgets_neuralfcm(model, x_test, y_test):
                     np.zeros((len(y_test), len(st.session_state.output_columns))),
                     "Statistic Values", figsize=(2*fig_size_av + 1, fig_size_av), size=size_av
                 ),
-                dpi=700,
+                dpi=500,
             )
             
         show_tables_statistics = st.toggle("Show tables", help = "Matrices as tables", key="show_average_tables")

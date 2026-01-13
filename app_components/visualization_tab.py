@@ -49,7 +49,7 @@ def plot_column(column, chart_type):
             height = st.slider("Change graph's height", 5, 30, 6)
             fig, axs = plt.subplots(figsize=(width, height))
             st.session_state.working_df.boxplot(column=column, ax=axs, rot=10)
-            st.pyplot(fig, dpi=900)
+            st.pyplot(fig, dpi=500)
 
         elif chart_type == "Histogram":
             width = st.slider("Change graph's width", 5, 30, 8)
@@ -73,7 +73,7 @@ def plot_column(column, chart_type):
                 label="median",
             )
             axs.legend()
-            st.pyplot(fig, dpi=900)
+            st.pyplot(fig, dpi=500)
 
     except Exception as e:
         st.warning(f"{e}", icon="⚠️")
