@@ -4,34 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FuzzyMind Manual</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script>
+        // Set the worker source (Required for PDF.js)
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    </script>
+
     <style>
-        /* Basic Reset */
+        /* --- LAYOUT & RESET --- */
         body, html {
             margin: 0;
             padding: 0;
             height: 100%;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
             display: flex;
-            overflow: hidden;
+            overflow: hidden; /* Main scroll is handled inside elements */
+            background-color: #525659; /* PDF Viewer Grey */
         }
 
-        /* Toggle Button (Hamburger) */
-        #toggle-btn {
-            position: absolute;
-            left: 10px;
-            top: 10px;
-            z-index: 1000;
-            background: #333;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            cursor: pointer;
-            border-radius: 4px;
-            font-size: 18px;
-        }
-        #toggle-btn:hover { background: #555; }
-
-        /* Sidebar Styling */
+        /* --- SIDEBAR --- */
         #sidebar {
             width: 250px;
             background-color: #f4f4f4;
@@ -41,16 +32,14 @@
             height: 100vh;
             transition: margin-left 0.3s ease;
             flex-shrink: 0; 
+            z-index: 100;
         }
 
-        /* Hides sidebar on toggle */
-        #sidebar.hidden {
-            margin-left: -250px;
-        }
+        #sidebar.hidden { margin-left: -250px; }
 
         #sidebar-header {
             padding: 20px;
-            padding-top: 60px; /* Space for the toggle button */
+            padding-top: 60px; /* Space for toggle button */
             background-color: #333;
             color: white;
             text-align: center;
@@ -62,7 +51,6 @@
             padding: 10px;
         }
 
-        /* Navigation Buttons */
         .nav-btn {
             display: block;
             width: 100%;
@@ -75,38 +63,63 @@
             border-radius: 4px;
             margin-bottom: 5px;
             font-size: 14px;
-            transition: background 0.2s;
+            border-bottom: 1px solid #eee;
         }
 
-        .nav-btn:hover {
-            background-color: #e0e0e0;
+        .nav-btn:hover { background-color: #e0e0e0; }
+
+        /* --- MAIN VIEWER AREA --- */
+        #viewer-container {
+            flex-grow: 1;
+            height: 100vh;
+            overflow-y: auto; /* Allow scrolling through pages */
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Centers the pages */
+            padding: 20px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        /* The PDF Pages */
+        .pdf-page-canvas {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            margin-bottom: 20px; /* Space between pages */
+            background-color: white;
+            max-width: 100%; /* Prevents horizontal scroll on small screens */
+        }
+
+        /* Toggle Button */
+        #toggle-btn {
+            position: fixed;
+            left: 10px;
+            top: 10px;
+            z-index: 1001;
+            background: #333;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 18px;
+        }
+
+        /* --- MOBILE RESPONSIVENESS --- */
+        @media (max-width: 768px) {
+            #sidebar { position: absolute; height: 100%; margin-left: -250px; }
+            #sidebar.active { margin-left: 0; }
+            
+            /* On mobile, remove grey padding so pages are full width */
+            #viewer-container { padding: 0; }
+            .pdf-page-canvas { margin-bottom: 5px; width: 100% !important; height: auto !important; }
         }
         
-        /* Highlight the active chapter */
-        .nav-btn.active {
-            background-color: #d0d0d0;
-            font-weight: bold;
-        }
-
-        /* Main PDF Viewer Area */
-        #pdf-container {
-            flex-grow: 1;
-            height: 100%;
-            background-color: #525659; /* Matches generic PDF viewer background */
-        }
-
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
-        }
-
-        /* Mobile Responsiveness */
-        @media (max-width: 768px) {
-            #sidebar { position: absolute; height: 100%; z-index: 999; margin-left: -250px; }
-            #sidebar.active { margin-left: 0; }
-            #toggle-btn { display: block; }
+        /* Loading Spinner */
+        #loader {
+            color: white;
+            margin-top: 50px;
+            font-size: 18px;
         }
     </style>
 </head>
@@ -118,49 +131,89 @@
         <div id="sidebar-header">
             <h3>FuzzyMind</h3>
         </div>
-
         <div id="sidebar-menu">
-            <button onclick="jumpToPage(1)" class="nav-btn">Table of Contents</button>
-            <button onclick="jumpToPage(3)" class="nav-btn">Introduction</button>
-            <button onclick="jumpToPage(4)" class="nav-btn">Installation & Running</button>
-            <button onclick="jumpToPage(5)" class="nav-btn">FCM Construction</button>
-            <button onclick="jumpToPage(13)" class="nav-btn">FCM (Linguistic)</button>
-            <button onclick="jumpToPage(22)" class="nav-btn">FCM Learning</button>
-            <button onclick="jumpToPage(34)" class="nav-btn">FAQs</button>
+            <button onclick="scrollToPage(1)" class="nav-btn">Table of Contents</button>
+            <button onclick="scrollToPage(3)" class="nav-btn">Introduction</button>
+            <button onclick="scrollToPage(4)" class="nav-btn">Installation & Running</button>
+            <button onclick="scrollToPage(5)" class="nav-btn">FCM Construction</button>
+            <button onclick="scrollToPage(13)" class="nav-btn">FCM (Linguistic)</button>
+            <button onclick="scrollToPage(22)" class="nav-btn">FCM Learning</button>
+            <button onclick="scrollToPage(34)" class="nav-btn">FAQs</button>
         </div>
     </div>
 
-    <div id="pdf-container">
-        <iframe id="pdf-frame" src="" title="PDF Viewer"></iframe>
-    </div>
+    <div id="viewer-container">
+        <div id="loader">Loading Manual...</div>
+        </div>
 
     <script>
-        // CONFIGURATION
-        const pdfFile = "Manual.pdf"; 
+        const url = 'Manual.pdf';
+        const container = document.getElementById('viewer-container');
+        let pdfDoc = null;
 
-        function jumpToPage(pageNumber) {
-            const iframe = document.getElementById('pdf-frame');
+        // Load the PDF
+        pdfjsLib.getDocument(url).promise.then(pdf => {
+            pdfDoc = pdf;
+            document.getElementById('loader').style.display = 'none';
+            renderAllPages();
+        }).catch(err => {
+            document.getElementById('loader').innerHTML = "Error loading PDF: " + err.message;
+        });
+
+        async function renderAllPages() {
+            // Loop through every page in the PDF
+            for (let i = 1; i <= pdfDoc.numPages; i++) {
+                await renderPage(i);
+            }
+        }
+
+        async function renderPage(num) {
+            const page = await pdfDoc.getPage(num);
             
-            // This string forces the PDF to open at the page AND fit the width
-            // "view=FitH" works for Chrome/Edge
-            // "zoom=page-width" works for Firefox/Others
-            const newSrc = `${pdfFile}#page=${pageNumber}&view=FitH&zoom=page-width`;
+            // Create canvas for this page
+            const canvas = document.createElement('canvas');
+            canvas.id = 'page-' + num; // Give it an ID so we can jump to it
+            canvas.className = 'pdf-page-canvas';
+            
+            // Calculate scale to fit the container width (Desktop vs Mobile)
+            const containerWidth = container.clientWidth - 40; // -40 for padding
+            const viewportUnscaled = page.getViewport({ scale: 1 });
+            
+            // Determine scale: Fit to width, but max out at 1.5 zoom for desktop clarity
+            let scale = containerWidth / viewportUnscaled.width;
+            if (scale > 1.5) scale = 1.5; 
+            
+            const viewport = page.getViewport({ scale: scale });
 
-            // We reset the src to force the browser to reload the frame to the new spot
-            if(iframe.src.includes(newSrc)) return; // Don't reload if already there
-            iframe.src = newSrc;
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            container.appendChild(canvas);
+
+            const renderContext = {
+                canvasContext: canvas.getContext('2d'),
+                viewport: viewport
+            };
+            
+            // Render the page
+            await page.render(renderContext).promise;
+        }
+
+        // Sidebar Navigation
+        function scrollToPage(num) {
+            const pageElement = document.getElementById('page-' + num);
+            if (pageElement) {
+                pageElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // On mobile, close sidebar after clicking
+                if (window.innerWidth < 768) toggleSidebar();
+            }
         }
 
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             sidebar.classList.toggle('hidden');
-            sidebar.classList.toggle('active'); // For mobile
+            sidebar.classList.toggle('active');
         }
-
-        // Load the first page on startup
-        window.onload = function() {
-            jumpToPage(1);
-        };
     </script>
 </body>
 </html>
