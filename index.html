@@ -3,153 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FuzzyMind Manual</title>
+    <title>FuzzyMind Manual (Wide)</title>
     <style>
-        /* --- LAYOUT --- */
         body, html {
             margin: 0;
             padding: 0;
             height: 100%;
-            font-family: Arial, sans-serif;
-            display: flex;
-            overflow: hidden; 
-        }
-
-        /* --- SIDEBAR --- */
-        #sidebar {
-            width: 220px; /* Kept slim */
-            background-color: #f4f4f4;
-            border-right: 1px solid #ccc;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            flex-shrink: 0; 
-            transition: all 0.3s ease;
-        }
-
-        /* Hides sidebar to give PDF 100% width */
-        #sidebar.closed {
-            width: 0;
             overflow: hidden;
-            border: none;
-        }
-
-        #sidebar-header {
-            padding: 15px;
-            background-color: #333;
-            color: white;
-            text-align: center;
-            white-space: nowrap; /* Prevents text break when closing */
-        }
-
-        #sidebar-menu {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 10px;
-        }
-
-        /* --- BUTTONS --- */
-        .nav-btn {
-            display: block;
-            width: 100%;
-            text-align: left;
-            padding: 10px;
-            margin-bottom: 5px;
-            background: #e8e8e8;
-            border: 1px solid #ddd;
-            cursor: pointer;
-            font-size: 13px;
-            border-radius: 3px;
-        }
-
-        .nav-btn:hover { background-color: #dcdcdc; }
-
-        /* --- MAIN AREA --- */
-        #main-area {
-            flex-grow: 1;
-            position: relative;
-            height: 100%;
             display: flex;
             flex-direction: column;
+            font-family: sans-serif;
+            background-color: #333;
         }
 
-        /* --- TOOLBAR (Toggle Button) --- */
-        #toolbar {
-            height: 40px;
-            background-color: #ddd;
-            border-bottom: 1px solid #bbb;
+        /* --- TOP NAVIGATION BAR --- */
+        #navbar {
+            height: 50px;
+            background-color: #222;
             display: flex;
             align-items: center;
-            padding-left: 10px;
+            padding: 0 10px;
+            border-bottom: 2px solid #444;
+            white-space: nowrap;
+            overflow-x: auto; /* Scroll horizontally if buttons don't fit */
         }
 
-        #toggle-btn {
-            padding: 5px 10px;
+        .nav-title {
+            color: white;
+            font-weight: bold;
+            margin-right: 20px;
+            font-size: 18px;
+        }
+
+        .nav-btn {
+            background: #444;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            margin-right: 5px;
             cursor: pointer;
-            font-size: 16px;
+            border-radius: 4px;
+            font-size: 13px;
         }
 
-        /* --- PDF FRAME --- */
-        iframe {
+        .nav-btn:hover { background: #666; }
+
+        /* --- PDF AREA --- */
+        #pdf-container {
             flex-grow: 1;
             width: 100%;
             height: 100%;
-            border: none;
+            background-color: #525659;
+        }
+
+        embed {
+            width: 100%;
+            height: 100%;
             display: block;
         }
     </style>
 </head>
 <body>
 
-    <div id="sidebar">
-        <div id="sidebar-header">
-            <h3>FuzzyMind</h3>
-        </div>
-        <div id="sidebar-menu">
-            <button onclick="goToPage(1)" class="nav-btn">Table of Contents</button>
-            <button onclick="goToPage(3)" class="nav-btn">Introduction</button>
-            <button onclick="goToPage(4)" class="nav-btn">Installation</button>
-            <button onclick="goToPage(5)" class="nav-btn">FCM Construction</button>
-            <button onclick="goToPage(13)" class="nav-btn">FCM (Linguistic)</button>
-            <button onclick="goToPage(22)" class="nav-btn">FCM Learning</button>
-            <button onclick="goToPage(34)" class="nav-btn">FAQs</button>
-        </div>
+    <div id="navbar">
+        <span class="nav-title">FuzzyMind</span>
+        <button onclick="changePage(1)" class="nav-btn">TOC</button>
+        <button onclick="changePage(3)" class="nav-btn">Introduction</button>
+        <button onclick="changePage(4)" class="nav-btn">Installation</button>
+        <button onclick="changePage(5)" class="nav-btn">Construction</button>
+        <button onclick="changePage(13)" class="nav-btn">Linguistic</button>
+        <button onclick="changePage(22)" class="nav-btn">Learning</button>
+        <button onclick="changePage(34)" class="nav-btn">FAQs</button>
+        <span style="color:yellow; font-size:10px; margin-left:auto;">v3 (TopBar)</span>
     </div>
 
-    <div id="main-area">
-        <div id="toolbar">
-            <button id="toggle-btn" onclick="toggleSidebar()">&#9776; Toggle Sidebar (Fullscreen PDF)</button>
-        </div>
-
-        <iframe id="pdf-frame" title="Manual Viewer"></iframe>
+    <div id="pdf-container">
+        <embed id="pdf-embed" src="Manual.pdf?v=1#page=1&view=FitH" type="application/pdf" />
     </div>
 
     <script>
-        // CONFIGURATION
-        const filename = "Manual.pdf";
-
-        function goToPage(pageNum) {
-            const iframe = document.getElementById('pdf-frame');
-            
-            // "view=FitH" tells the browser to Fit Horizontal (width)
-            // We append a random timestamp to force the browser to treat it as a new load 
-            // This fixes the issue where buttons wouldn't work on the second click.
-            const newSrc = `${filename}#page=${pageNum}&view=FitH`;
-            
-            // If the src is exactly the same, some browsers ignore the reload.
-            // We force a refresh by resetting it.
-            iframe.src = newSrc;
+        function changePage(pageNum) {
+            const embed = document.getElementById('pdf-embed');
+            // We clone the node to force a complete re-render of the embed tag
+            // This is the "Nuclear Option" for browsers that refuse to update
+            const clone = embed.cloneNode(true);
+            clone.src = `Manual.pdf?v=1#page=${pageNum}&view=FitH`;
+            embed.parentNode.replaceChild(clone, embed);
         }
-
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('closed');
-        }
-
-        // Initialize on Load
-        window.onload = function() {
-            goToPage(1);
-        };
     </script>
+
 </body>
 </html>
