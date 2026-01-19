@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manual Viewer</title>
+    <title>FuzzyMind Manual</title>
     <style>
         /* Basic Reset */
         body, html {
@@ -15,7 +15,7 @@
             overflow: hidden;
         }
 
-        /* Toggle Button */
+        /* Toggle Button (Hamburger) */
         #toggle-btn {
             position: absolute;
             left: 10px;
@@ -31,26 +31,26 @@
         }
         #toggle-btn:hover { background: #555; }
 
-        /* Sidebar Styling - Reduced width to 220px */
+        /* Sidebar Styling */
         #sidebar {
-            width: 220px; /* Made narrower */
+            width: 250px;
             background-color: #f4f4f4;
             border-right: 1px solid #ddd;
             display: flex;
             flex-direction: column;
             height: 100vh;
-            transition: margin-left 0.3s ease; /* Smooth sliding animation */
-            flex-shrink: 0; /* Prevents sidebar from squishing */
+            transition: margin-left 0.3s ease;
+            flex-shrink: 0; 
         }
 
-        /* Class to hide sidebar */
+        /* Hides sidebar on toggle */
         #sidebar.hidden {
-            margin-left: -220px;
+            margin-left: -250px;
         }
 
         #sidebar-header {
             padding: 20px;
-            padding-top: 50px; /* Space for toggle button */
+            padding-top: 60px; /* Space for the toggle button */
             background-color: #333;
             color: white;
             text-align: center;
@@ -62,51 +62,37 @@
             padding: 10px;
         }
 
-        /* Navigation Links */
-        .nav-link {
+        /* Navigation Buttons */
+        .nav-btn {
             display: block;
-            padding: 10px 15px;
+            width: 100%;
+            text-align: left;
+            padding: 12px 15px;
+            background: none;
+            border: none;
             color: #333;
-            text-decoration: none;
+            cursor: pointer;
             border-radius: 4px;
             margin-bottom: 5px;
-            font-size: 14px; /* Slightly smaller text for better fit */
+            font-size: 14px;
             transition: background 0.2s;
         }
 
-        .nav-link:hover {
+        .nav-btn:hover {
             background-color: #e0e0e0;
         }
-
-        /* Download Button Area */
-        #download-area {
-            padding: 20px;
-            border-top: 1px solid #ccc;
-            background-color: #fff;
-            text-align: center;
-        }
-
-        .btn-download {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 0;
-            width: 100%;
-            text-decoration: none;
-            border-radius: 5px;
+        
+        /* Highlight the active chapter */
+        .nav-btn.active {
+            background-color: #d0d0d0;
             font-weight: bold;
-            display: inline-block;
-            font-size: 14px;
-        }
-
-        .btn-download:hover {
-            background-color: #0056b3;
         }
 
         /* Main PDF Viewer Area */
         #pdf-container {
             flex-grow: 1;
             height: 100%;
-            position: relative;
+            background-color: #525659; /* Matches generic PDF viewer background */
         }
 
         iframe {
@@ -118,7 +104,7 @@
 
         /* Mobile Responsiveness */
         @media (max-width: 768px) {
-            #sidebar { position: absolute; height: 100%; z-index: 999; margin-left: -220px; }
+            #sidebar { position: absolute; height: 100%; z-index: 999; margin-left: -250px; }
             #sidebar.active { margin-left: 0; }
             #toggle-btn { display: block; }
         }
@@ -130,36 +116,51 @@
 
     <div id="sidebar">
         <div id="sidebar-header">
-            <h3>User Manual</h3>
+            <h3>FuzzyMind</h3>
         </div>
 
         <div id="sidebar-menu">
-            <a href="Manual.pdf#page=2&view=FitH" target="pdf-frame" class="nav-link">Table of contents</a>
-            <a href="Manual.pdf#page=3&view=FitH" target="pdf-frame" class="nav-link">Introduction</a>
-            <a href="Manual.pdf#page=4&view=FitH" target="pdf-frame" class="nav-link">Installation and running</a>
-            <a href="Manual.pdf#page=5&view=FitH" target="pdf-frame" class="nav-link">FCM construction and inference</a>
-            <a href="Manual.pdf#page=13&view=FitH" target="pdf-frame" class="nav-link">FCM (Linguistic)</a>
-            <a href="Manual.pdf#page=22&view=FitH" target="pdf-frame" class="nav-link">FCM learning</a>
-            <a href="Manual.pdf#page=35&view=FitH" target="pdf-frame" class="nav-link">FAQs</a>
-        </div>
-
-        <div id="download-area">
-            <a href="Manual.pdf" download class="btn-download">Download PDF</a>
+            <button onclick="jumpToPage(1)" class="nav-btn">Table of Contents</button>
+            <button onclick="jumpToPage(3)" class="nav-btn">Introduction</button>
+            <button onclick="jumpToPage(4)" class="nav-btn">Installation & Running</button>
+            <button onclick="jumpToPage(5)" class="nav-btn">FCM Construction</button>
+            <button onclick="jumpToPage(13)" class="nav-btn">FCM (Linguistic)</button>
+            <button onclick="jumpToPage(22)" class="nav-btn">FCM Learning</button>
+            <button onclick="jumpToPage(34)" class="nav-btn">FAQs</button>
         </div>
     </div>
 
     <div id="pdf-container">
-        <iframe src="Manual.pdf#page=1&view=FitH" name="pdf-frame" title="PDF Viewer"></iframe>
+        <iframe id="pdf-frame" src="" title="PDF Viewer"></iframe>
     </div>
 
     <script>
+        // CONFIGURATION
+        const pdfFile = "Manual.pdf"; 
+
+        function jumpToPage(pageNumber) {
+            const iframe = document.getElementById('pdf-frame');
+            
+            // This string forces the PDF to open at the page AND fit the width
+            // "view=FitH" works for Chrome/Edge
+            // "zoom=page-width" works for Firefox/Others
+            const newSrc = `${pdfFile}#page=${pageNumber}&view=FitH&zoom=page-width`;
+
+            // We reset the src to force the browser to reload the frame to the new spot
+            if(iframe.src.includes(newSrc)) return; // Don't reload if already there
+            iframe.src = newSrc;
+        }
+
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
-            // Toggle the 'hidden' class on desktop/standard view
             sidebar.classList.toggle('hidden');
-            // Toggle 'active' for mobile view logic if needed
-            sidebar.classList.toggle('active');
+            sidebar.classList.toggle('active'); // For mobile
         }
+
+        // Load the first page on startup
+        window.onload = function() {
+            jumpToPage(1);
+        };
     </script>
 </body>
 </html>
