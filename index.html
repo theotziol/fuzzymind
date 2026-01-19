@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Viewer</title>
+    <style>
+        /* Basic Reset */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            overflow: hidden; /* Prevents double scrollbars */
+        }
+
+        /* Sidebar Styling */
+        #sidebar {
+            width: 250px;
+            background-color: #f4f4f4;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        #sidebar-header {
+            padding: 20px;
+            background-color: #333;
+            color: white;
+            text-align: center;
+        }
+
+        #sidebar-menu {
+            flex-grow: 1;
+            overflow-y: auto; /* Scrollable menu if many items */
+            padding: 10px;
+        }
+
+        /* Navigation Links */
+        .nav-link {
+            display: block;
+            padding: 10px 15px;
+            color: #333;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            transition: background 0.2s;
+        }
+
+        .nav-link:hover {
+            background-color: #e0e0e0;
+        }
+
+        /* Download Button Area */
+        #download-area {
+            padding: 20px;
+            border-top: 1px solid #ccc;
+            background-color: #fff;
+            text-align: center;
+        }
+
+        .btn-download {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .btn-download:hover {
+            background-color: #0056b3;
+        }
+
+        /* Main PDF Viewer Area */
+        #pdf-container {
+            flex-grow: 1;
+            height: 100%;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            #sidebar { width: 100%; height: auto; max-height: 30vh; }
+            #pdf-container { height: 70vh; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="sidebar">
+        <div id="sidebar-header">
+            <h3>User Manual</h3>
+        </div>
+
+        <div id="sidebar-menu">
+            <a href="Manual.pdf#page=2" target="pdf-frame" class="nav-link">Table of contents</a>
+            <a href="Manual.pdf#page=3" target="pdf-frame" class="nav-link">Introduction</a>
+            <a href="Manual.pdf#page=4" target="pdf-frame" class="nav-link">Installation and running</a>
+            <a href="Manual.pdf#page=5" target="pdf-frame" class="nav-link">FCM construnction and inference</a>
+            <a href="Manual.pdf#page=13" target="pdf-frame" class="nav-link">FCM construnction and inference (linguistic)</a>
+            <a href="Manual.pdf#page=22" target="pdf-frame" class="nav-link">FCM learning</a>
+            <a href="Manual.pdf#page=35" target="pdf-frame" class="nav-link">FAQs</a>
+        </div>
+
+        <div id="download-area">
+            <a href="Manual.pdf" download class="btn-download">Download PDF</a>
+        </div>
+    </div>
+
+    <div id="pdf-container">
+        <iframe src="Manual.pdf#page=1" name="pdf-frame" title="PDF Viewer"></iframe>
+    </div>
+
+</body>
+</html>
