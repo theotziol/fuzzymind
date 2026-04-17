@@ -1,3 +1,5 @@
+# The components for linguistic designing. Contains MFs, Aggregation, Defuzzification 
+
 import streamlit as st
 import sys
 from copy import deepcopy as dc
@@ -256,30 +258,78 @@ def manual_tab_linguistic(dic):
     The main tab for manual linguistic fcm construction
     """
     st.subheader("Define the total number of concepts", divider="blue")
+    
     num_concepts = st.number_input(
         "Give the number of concepts",
         min_value=3,
         max_value=50,
-        value=None,
+        value=st.session_state.get('num_concepts_ling', None),
         help="Give an integer in the range [3, 50]",
     )
-    if num_concepts != None:
-        st.subheader("Define concepts", divider="blue")
-        columns_df = create_weight_matrix_columns(num_concepts)
-        edited_columns = st.data_editor(columns_df, hide_index=True)
-        st.subheader("Define linguistic interconnections", divider="green")
+    
+    if num_concepts is not None:
         mfs = list(dic["memberships"].keys())
-        weight_matrix_df = create_linguistic_weight_matrix(
-            num_concepts, edited_columns.values.tolist(), mfs
-        )
-        edited_matrix = st.data_editor(
-            weight_matrix_df.style.apply(highlight_diagonal, axis=None),
+        default_value = mfs[len(mfs)//2] # Middle value (e.g. "None")
+
+        # 1. Initialize or Resize Session State
+        if 'num_concepts_ling' not in st.session_state or st.session_state['num_concepts_ling'] != num_concepts:
+            old_names = st.session_state.get('concept_names_ling', [])
+            old_matrix = st.session_state.get('weight_matrix_ling', pd.DataFrame())
+            
+            new_names = old_names[:num_concepts]
+            while len(new_names) < num_concepts:
+                new_names.append(f"Concept_{len(new_names)+1}")
+            
+            # Matrix initialized with the default linguistic variable
+            new_matrix = pd.DataFrame(np.full((num_concepts, num_concepts), default_value, dtype="object"), 
+                                      columns=new_names, index=new_names)
+            
+            # Copy old data
+            overlap = [name for name in old_names if name in new_names]
+            if not old_matrix.empty and overlap:
+                new_matrix.loc[overlap, overlap] = old_matrix.loc[overlap, overlap]
+            
+            st.session_state['num_concepts_ling'] = num_concepts
+            st.session_state['concept_names_ling'] = new_names
+            st.session_state['weight_matrix_ling'] = new_matrix
+
+        st.subheader("Define concepts", divider="blue")
+        
+        # 2. Concept Renaming Editor
+        concepts_df = pd.DataFrame([st.session_state['concept_names_ling']], columns=[f"C{i+1}" for i in range(num_concepts)])
+        edited_columns = st.data_editor(concepts_df, hide_index=True, key="concept_editor_ling")
+        new_concept_names = edited_columns.iloc[0].tolist()
+        
+        # 3. Safely update names
+        if new_concept_names != st.session_state['concept_names_ling']:
+            st.session_state['concept_names_ling'] = new_concept_names
+            st.session_state['weight_matrix_ling'].columns = new_concept_names
+            st.session_state['weight_matrix_ling'].index = new_concept_names
+            st.rerun() # Sync!
+
+        st.subheader("Define linguistic interconnections", divider="green")
+        
+        # 4. Format matrix for display
+        display_matrix = st.session_state['weight_matrix_ling'].copy()
+        display_matrix.insert(0, "-", display_matrix.index)
+        
+        # 5. Weight Matrix Editor
+        edited_matrix_display = st.data_editor(
+            display_matrix.style.apply(highlight_diagonal, axis=None),
             hide_index=True,
             disabled=["-"],
-            column_config=fix_configs_linguistic(weight_matrix_df, mfs),
+            column_config=fix_configs_linguistic(display_matrix, mfs),
+            key="matrix_editor_ling"
         )
-        edited_matrix.set_index("-", inplace=True)
-        return edited_matrix, True
+        
+        # 6. Save the finalized edits safely
+        edited_matrix_display.set_index("-", inplace=True)
+        
+        if not edited_matrix_display.equals(st.session_state['weight_matrix_ling']):
+            st.session_state['weight_matrix_ling'] = edited_matrix_display
+            st.rerun() # Sync!
+        
+        return st.session_state['weight_matrix_ling'], True
 
     else:
         return None, False

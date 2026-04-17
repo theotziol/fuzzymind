@@ -5,8 +5,7 @@ import sys
 sys.path.insert(1, '../fcm_codes')
 from fcm_codes.general_functions import *
 
-load_widget_help = "Upload a '.csv' file.\n\
-    It is recommended to upload a '.csv' file where both the first row (header) and the first column (index) contain the concepts' notation/names.\n\
+load_widget_help = "Upload a '.csv' file where both the first row (header) and the first column (index) contain the concepts' notation/names.\n\
         You can use [Design Manually] option to construct and download manually a weight matrix. "
 
 index_boolean_widget_help = "The uploaded file is expected to has concepts' names/notation as index (first column)\n\
