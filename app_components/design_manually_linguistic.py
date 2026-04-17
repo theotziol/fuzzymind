@@ -259,11 +259,13 @@ def manual_tab_linguistic(dic):
     """
     st.subheader("Define the total number of concepts", divider="blue")
     
+    # ADDED KEY: "num_concepts_widget_ling"
     num_concepts = st.number_input(
         "Give the number of concepts",
         min_value=3,
         max_value=50,
         value=st.session_state.get('num_concepts_ling', None),
+        key="num_concepts_widget_ling",
         help="Give an integer in the range [3, 50]",
     )
     
@@ -292,6 +294,9 @@ def manual_tab_linguistic(dic):
             st.session_state['num_concepts_ling'] = num_concepts
             st.session_state['concept_names_ling'] = new_names
             st.session_state['weight_matrix_ling'] = new_matrix
+            
+            # ADDED RERUN: Sync!
+            st.rerun()
 
         st.subheader("Define concepts", divider="blue")
         
@@ -305,7 +310,7 @@ def manual_tab_linguistic(dic):
             st.session_state['concept_names_ling'] = new_concept_names
             st.session_state['weight_matrix_ling'].columns = new_concept_names
             st.session_state['weight_matrix_ling'].index = new_concept_names
-            st.rerun() # Sync!
+            st.rerun() 
 
         st.subheader("Define linguistic interconnections", divider="green")
         
@@ -327,7 +332,7 @@ def manual_tab_linguistic(dic):
         
         if not edited_matrix_display.equals(st.session_state['weight_matrix_ling']):
             st.session_state['weight_matrix_ling'] = edited_matrix_display
-            st.rerun() # Sync!
+            st.rerun() 
         
         return st.session_state['weight_matrix_ling'], True
 

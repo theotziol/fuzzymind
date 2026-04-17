@@ -11,11 +11,13 @@ from fcm_codes.general_functions import *
 def manual_tab():
     st.subheader("Define the total number of concepts", divider="green")
     
+    # ADDED KEY: "num_concepts_widget" lets Streamlit handle the widget's internal state
     num_concepts = st.number_input(
         "Give the number of concepts",
         min_value=3,
         max_value=50,
         value=st.session_state.get('num_concepts', None),
+        key="num_concepts_widget", 
         help="Give an integer in the range [3, 50]",
     )
     
@@ -33,7 +35,7 @@ def manual_tab():
             # Create new matrix filled with zeros
             new_matrix = pd.DataFrame(np.zeros((num_concepts, num_concepts)), columns=new_names, index=new_names)
             
-            # Copy old data where names overlap (so adding/removing a concept doesn't delete existing weights)
+            # Copy old data where names overlap
             overlap = [name for name in old_names if name in new_names]
             if not old_matrix.empty and overlap:
                 new_matrix.loc[overlap, overlap] = old_matrix.loc[overlap, overlap]
@@ -42,6 +44,9 @@ def manual_tab():
             st.session_state['num_concepts'] = num_concepts
             st.session_state['concept_names'] = new_names
             st.session_state['weight_matrix'] = new_matrix
+            
+            # ADDED RERUN: Force sync immediately after resizing so the widget doesn't bug out!
+            st.rerun() 
 
         st.subheader("Define concepts", divider="green")
         
@@ -55,11 +60,11 @@ def manual_tab():
             st.session_state['concept_names'] = new_concept_names
             st.session_state['weight_matrix'].columns = new_concept_names
             st.session_state['weight_matrix'].index = new_concept_names
-            st.rerun() # Forces Streamlit to resync the state immediately!
+            st.rerun() 
         
         st.subheader("Define weighted interconnections", divider="green")
         
-        # 4. Format matrix for display (inserting the '-' column as required by your UI)
+        # 4. Format matrix for display 
         display_matrix = st.session_state['weight_matrix'].copy()
         display_matrix.insert(0, "-", display_matrix.index)
         
@@ -78,7 +83,7 @@ def manual_tab():
         
         if not edited_matrix.equals(st.session_state['weight_matrix']):
             st.session_state['weight_matrix'] = edited_matrix
-            st.rerun() # Forces Streamlit to resync the state immediately!
+            st.rerun() 
         
         return st.session_state['weight_matrix'], True
     else:
