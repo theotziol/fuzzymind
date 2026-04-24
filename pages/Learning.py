@@ -79,30 +79,44 @@ data_tab, data_visual, preprocessing_tab, learning_tab = st.tabs(
 
 
 with data_tab:
-    csv = upload_widgets()
-    if csv is not None:
-        if st.session_state.uploaded:
-            st.sidebar.success(f"The {csv.name} file has been succesfully imported")
-            modify_dataset()
+    # Check if a dataset is ALREADY uploaded and stored in memory
+    if st.session_state.get('uploaded', False):
+        st.sidebar.success("A dataset is currently loaded in memory.")
+        st.info("A dataset is actively loaded. If you want to upload a different dataset or start over, click the button below.")
+        
+        # 1. The Clear Button
+        if st.button("🗑️ Clear Dataset & Start Over"):
+            st.session_state.uploaded = False
+            st.session_state.initialized_preprocessing = False
+            st.session_state.normalized = False
+            st.session_state.training_finished = False
+            st.session_state.output_df = None
+            st.session_state.input_df = None
+            st.session_state.model = None
+            st.session_state.train = False
+            st.session_state.non_norm_working_df = None
+
+            if "working_df" in st.session_state.keys():
+                del st.session_state.working_df
+            
+            st.rerun() # Instantly refreshes the page, making the uploader reappear!
+
+        # 2. Render the dataset parameter options
+        modify_dataset()
 
     else:
-        ### give back the initial values to the session state variables
-        # st.session_state.clear()
-        st.session_state.uploaded = False
-        st.session_state.initialized_preprocessing = False
-        st.session_state.normalized = False
-        st.session_state.training_finished = False
-        st.session_state.output_df = None
-        st.session_state.input_df = None
-        st.session_state.model = None
-        st.session_state.train = False
-        st.session_state.non_norm_working_df = None
-
-        if "working_df" in st.session_state.keys():
-            del st.session_state.working_df
+        # No dataset is uploaded yet, OR the user just cleared it.
+        # Show the uploader!
+        csv = upload_widgets()
+        
+        # NOTE: When the user clicks "Import data", your `upload_callback` fires.
+        # Callbacks automatically rerun the Streamlit script from top to bottom.
+        # Upon that rerun, `uploaded` will be True, and the app will instantly 
+        # jump to the top `if` statement, cleanly hiding this uploader!
 
 
 sidebar_widgets_task()
+sidebar_widgets_show_df()
 
 with data_visual:
     if st.session_state.uploaded:
@@ -186,5 +200,5 @@ with learning_tab:
             """
             )
 
-sidebar_widgets_show_df()
+
 sidebar_logo()
