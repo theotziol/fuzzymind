@@ -10,7 +10,7 @@ import numpy as np
 # from sklearn.preprocessing import MinMaxScaler
 # from fcm_tensorflow import *
 import time
-from sklearn.metrics import accuracy_score, confusion_matrix, f1_score
+from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precision_score, recall_score, roc_auc_score, roc_curve, auc
 
 
 class neural_fcm:
@@ -188,17 +188,11 @@ class neural_fcm:
 
     @tf.function
     def __custom_loss_categorical(self, true, predicted):
-        """
-        This loss is used for classification with one-hot-encoding. In classification the n_row is given as input and the n_labels is given as output.
-        Therefore, when training a model, both  n_row and n_labels must be passed as target data to the loss. Here these data are concatenated and the shapes are as following:
-            predicted.shape = [batch_size, x, x, 1] and x = input + dummy_label, with label having a dummy value
-            true.shape = [batch, x(t0) + y(t0)] or equivalently true.shape = [batch, 2 * x].
-        """
         attributes = true.shape[-1] - self.output_concepts
         x = true[:, :attributes]
         y = true[:, attributes:]
+        
         for i in tf.range(self.fcm_iter):
-            # x.shape = (batch, features), test.shape = (batch, features, features, channels)
             x = x[:, None, :] + tf.linalg.matmul(x[:, None, :], predicted[:, :, :, 0])
             x = sigmoid(x, self.l_slope)
             x = x[:, 0]
@@ -207,14 +201,20 @@ class neural_fcm:
         outputs = x[:, -self.output_concepts :]
         softoutputs = tf.nn.softmax(outputs)
 
-        cce = tf.keras.losses.CategoricalCrossentropy()
         w1, w2, w3 = self.classification_loss_weights
-        error1 = cce(softoutputs, y)
-        error2 = tf.math.reduce_mean(tf.math.square(diagonal))
-        error3 = tf.math.reduce_mean(
-            tf.math.square(predicted[:, -self.output_concepts :, :, 0])
-        )  # the output concept
+
+        # 1. Use Reduction.NONE so it returns an array of shape [batch_size]
+        cce = tf.keras.losses.CategoricalCrossentropy(reduction=tf.keras.losses.Reduction.NONE)
+        # Note: Keras losses expect (y_true, y_pred) order!
+        error1 = cce(y, softoutputs) 
+
+        # 2. Reduce over the feature dimensions (axis=-1 or [1,2]), keeping the batch dimension intact
+        error2 = tf.math.reduce_mean(tf.math.square(diagonal), axis=-1)
+        error3 = tf.math.reduce_mean(tf.math.square(predicted[:, -self.output_concepts :, :, 0]), axis=[1, 2]) 
+
+        # 3. Returns an array of losses of shape [batch_size]
         error = (w1 * error1) + (w2 * error2) + (w3 * error3)
+        
         return error
 
     @tf.function
@@ -260,39 +260,55 @@ class neural_fcm:
         predictions=None,
     ):
         """
-            calculate the classification metrics in a test dataset. Currently works for one hot encoding labels
-            Args:
-                y: numpy array of the labels (one hote encoding)
-                predictions: numpy array of the predictions.
-                    If no array is passed the function utilizes the self.predictions variable,
-                    calculated with the self.prediction_classification method.
-
-        F1-Score
-            'micro':
-            Calculate metrics globally by counting the total true positives, false negatives and false positives.
-
-            'macro':
-            Calculate metrics for each label, and find their unweighted mean. This does not take label imbalance into account.
+        Calculate the classification metrics in a test dataset.
         """
-        if predictions != None:
-            max_indexes_predictions = np.argmax(predictions, axis=-1)
+        if predictions is not None:
+            preds = predictions
         else:
-            max_indexes_predictions = np.argmax(self.predictions, axis=-1)
+            preds = self.predictions
 
+        max_indexes_predictions = np.argmax(preds, axis=-1)
         max_indexes_y = np.argmax(y, axis=-1)
 
+        # Standard Metrics
         self.accuracy = accuracy_score(max_indexes_y, max_indexes_predictions)
         self.confusion_matrix = confusion_matrix(max_indexes_y, max_indexes_predictions)
-        self.f1_score_micro = f1_score(
-            max_indexes_y, max_indexes_predictions, average="micro"
-        )
-        self.f1_score_macro = f1_score(
-            max_indexes_y, max_indexes_predictions, average="macro"
-        )
-        print(
-            f"\nAccuracy = {np.round(self.accuracy,4)},\nF1 (micro) = {np.round(self.f1_score_micro,4)},\nF1 (macro) = {np.round(self.f1_score_macro,4)},\nConfusion Matrix = \n{self.confusion_matrix}\n"
-        )
+        self.f1_score_micro = f1_score(max_indexes_y, max_indexes_predictions, average="micro")
+        self.f1_score_macro = f1_score(max_indexes_y, max_indexes_predictions, average="macro")
 
+        # New Metrics: Precision & Recall (Macro average is generally best for multi-class)
+        self.precision = precision_score(max_indexes_y, max_indexes_predictions, average="macro", zero_division=0)
+        self.recall = recall_score(max_indexes_y, max_indexes_predictions, average="macro", zero_division=0)
+
+        # ROC AUC and Curve calculation
+        # Apply softmax to ensure predictions are proper probabilities for the ROC curve
+        probs = tf.nn.softmax(preds).numpy()
+
+        try:
+            # Multi-class ROC AUC score
+            self.roc_auc = roc_auc_score(y, probs, multi_class='ovr', average='macro')
+
+            # Compute ROC curve and ROC area for each class
+            n_classes = y.shape[1]
+            self.fpr = dict()
+            self.tpr = dict()
+            self.roc_auc_dict = dict()
+            for i in range(n_classes):
+                self.fpr[i], self.tpr[i], _ = roc_curve(y[:, i], probs[:, i])
+                self.roc_auc_dict[i] = auc(self.fpr[i], self.tpr[i])
+
+        except Exception as e:
+            # Fallback in case of singular classes or other ROC errors
+            self.roc_auc = None
+            self.fpr = None
+            self.tpr = None
+            self.roc_auc_dict = None
+            print(f"Could not calculate ROC AUC: {e}")
+
+        print(
+            f"\nAccuracy = {np.round(self.accuracy,4)},\nF1 (micro) = {np.round(self.f1_score_micro,4)},\nF1 (macro) = {np.round(self.f1_score_macro,4)},\nPrecision = {np.round(self.precision,4)},\nRecall = {np.round(self.recall,4)},\nAUC = {np.round(self.roc_auc,4) if self.roc_auc else 'N/A'}\n"
+        )
+        
     def statistics_regression_norm(self, y):
         """
         Calculate the regression statistics for normalized values

@@ -47,24 +47,96 @@ def testing_results_classification(model, testing_samples):
     Function to plot the testing results of the classification:
     ---Currently has been tested for the Neural-FCM classifier---
     '''
-    col1, col2, col3 = st.columns([0.2, 0.5, 0.3])
+    # 1. Polished KPI Metric Cards Row
+    m1, m2, m3, m4, m5, m6 = st.columns(6)
+    m1.metric("Accuracy", f"{model.accuracy:.4f}")
+    m2.metric("F1 (Macro)", f"{model.f1_score_macro:.4f}")
+    m3.metric("F1 (Micro)", f"{model.f1_score_micro:.4f}")
+    m4.metric("Precision", f"{getattr(model, 'precision', 0):.4f}")
+    m5.metric("Recall", f"{getattr(model, 'recall', 0):.4f}")
+    m6.metric("AUC", f"{getattr(model, 'roc_auc', 0):.4f}" if getattr(model, 'roc_auc', None) is not None else "N/A")
+
+    st.divider()
+
+    # 2. Charts and Inference Stats Row
+    col1, col2, col3 = st.columns([0.4, 0.4, 0.2])
 
     with col1:
-        st.write(f'**Accuracy**: {np.round(model.accuracy, 4)}\n')
-        st.write(f'**F1-score (macro)**: {np.round(model.f1_score_macro, 4)}\n')
-        st.write(f'**F1-score (micro)**: {np.round(model.f1_score_micro, 4)}\n')
-
-    with col2:
+        st.write("**Confusion Matrix**")
         disp = ConfusionMatrixDisplay(confusion_matrix=model.confusion_matrix, display_labels=st.session_state.output_columns)
         fig, axs = plt.subplots(figsize = (4, 4))
         disp.plot(cmap = 'hot', colorbar=False, ax = axs)
         st.pyplot(fig)
 
+    with col2:
+        st.write("**ROC Curve**")
+        if hasattr(model, 'fpr') and model.fpr is not None:
+            fig_roc, ax_roc = plt.subplots(figsize=(4, 4))
+            n_classes = len(model.fpr)
+            for i in range(n_classes):
+                # Map back to column names if available
+                class_name = st.session_state.output_columns[i] if i < len(st.session_state.output_columns) else f"Class {i}"
+                ax_roc.plot(model.fpr[i], model.tpr[i], label=f'{class_name} (AUC = {model.roc_auc_dict[i]:.2f})')
+            
+            ax_roc.plot([0, 1], [0, 1], 'k--', lw=1) # Diagonal line
+            ax_roc.set_xlim([0.0, 1.0])
+            ax_roc.set_ylim([0.0, 1.05])
+            ax_roc.set_xlabel('False Positive Rate')
+            ax_roc.set_ylabel('True Positive Rate')
+            ax_roc.legend(loc="lower right", fontsize='x-small')
+            st.pyplot(fig_roc)
+        else:
+            st.info("ROC Curve not available for this dataset.")
+
     with col3:
-        st.write(f'Total testing samples: {testing_samples}\n')
+        st.write("**Inference Stats**")
+        st.write(f'Total testing samples: {testing_samples}')
         b_size = np.min([testing_samples, 32]) #32 the default by keras model.predict
-        st.write(f'Total prediction time: {model.prediction_time} ms\n') 
-        st.write(f'Prediction batch size: {b_size}\n')
+        st.write(f'Prediction time: {model.prediction_time} ms') 
+        st.write(f'Batch size: {b_size}')
+
+
+def testing_results_averaged():
+    '''
+    Aggregates results for K-Fold Cross Validation in a polished way.
+    '''
+    accuracy, f1_score_macro, f1_score_micro = [], [], []
+    precision, recall, roc_auc, prediction_times = [], [], [], []
+    
+    for key in st.session_state.kfold_dic.keys():
+        model = st.session_state.kfold_dic[key]
+        accuracy.append(model.accuracy)
+        f1_score_macro.append(model.f1_score_macro)
+        f1_score_micro.append(model.f1_score_micro)
+        precision.append(getattr(model, 'precision', np.nan))
+        recall.append(getattr(model, 'recall', np.nan))
+        roc_auc.append(getattr(model, 'roc_auc', np.nan))
+        prediction_times.append(model.prediction_time)
+
+    dic = {
+        'Accuracy' : accuracy,
+        'F1 (macro)' : f1_score_macro,
+        'F1 (micro)' : f1_score_micro,
+        'Precision' : precision,
+        'Recall' : recall,
+        'ROC AUC' : roc_auc,
+        'Pred. times (ms)' : prediction_times
+    }
+    df = pd.DataFrame(dic, index = st.session_state.kfold_dic.keys())
+
+    # Polished Average KPIs
+    st.write("##### K-Fold Average Performance")
+    m1, m2, m3, m4, m5, m6 = st.columns(6)
+    m1.metric("Avg Accuracy", f"{np.nanmean(accuracy):.4f}")
+    m2.metric("Avg F1 (Macro)", f"{np.nanmean(f1_score_macro):.4f}")
+    m3.metric("Avg F1 (Micro)", f"{np.nanmean(f1_score_micro):.4f}")
+    m4.metric("Avg Precision", f"{np.nanmean(precision):.4f}")
+    m5.metric("Avg Recall", f"{np.nanmean(recall):.4f}")
+    m6.metric("Avg AUC", f"{np.nanmean(roc_auc):.4f}")
+
+    st.divider()
+    st.write("##### Detailed Fold Performance")
+    st.dataframe(df.style.format("{:.4f}"))
 
 def testing_results_regression(model):
     '''
@@ -110,35 +182,7 @@ def testing_results_regression(model):
         ax.set_ylabel('Predicted values')
         st.pyplot(fig)
 
-    
-        
 
-def testing_results_averaged():
-    accuracy = []
-    f1_score_macro = []
-    f1_score_micro = []
-    prediction_times = []
-    for key in st.session_state.kfold_dic.keys():
-        accuracy.append(st.session_state.kfold_dic[key].accuracy)
-        f1_score_macro.append(st.session_state.kfold_dic[key].f1_score_macro)
-        f1_score_micro.append(st.session_state.kfold_dic[key].f1_score_micro)
-        prediction_times.append(st.session_state.kfold_dic[key].prediction_time)
-
-    dic = {
-        'Accuracy' : accuracy,
-        'F1-Score (macro)' : f1_score_macro,
-        'F1-Score (micro)' : f1_score_micro,
-        'Prediction times (ms)' : prediction_times
-    }
-    df = pd.DataFrame(dic, index = st.session_state.kfold_dic.keys())
-
-    col1, col2 = st.columns(2)
-    with col1:
-        st.write(f'**Average accuracy**: {np.round(np.mean(accuracy), 4)}\n')
-        st.write(f'**Average F1-score (macro)**: {np.round(np.mean(f1_score_macro), 4)}\n')
-        st.write(f'**Average F1-score (micro)**: {np.round(np.mean(f1_score_micro), 4)}\n')
-    with col2:
-        st.dataframe(df)
 
 
 

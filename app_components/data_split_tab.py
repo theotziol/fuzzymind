@@ -21,19 +21,32 @@ During **KFold** or when **shuffle** is enabled only standard split is performed
 help_timestep = 'The number $\\it{t}$ so the input row vector $\\it{\\textbf{x}^t}$ will kept as input (independent variables) and the $\\it{\\textbf{x}^{t+t}}$ will become the output vector (dependent variables)'
 
 help_splitting_method = "The **Standard** method allows the user to use their own desired ratio to split the dataset. The first part will be used for training and the last will be used for testing.\
-    \nThe **KFold** cross-validation method splits the dataset into k consecutive folds. Each fold is then used once as a test while the k - 1 remaining folds form the training set."
+    \nIn classification:\n the **KFold** cross-validation method splits the dataset into k consecutive folds. Each fold is then used once as a test while the k - 1 remaining folds form the training set.\
+    \nSimilarly the StratifiedKFold  is a variation of KFold that returns stratified folds. The folds are made by preserving the percentage of samples for each class in y in a binary or multiclass classification setting"
 
 
 
 def spliting_widgets():
     st.subheader('Data Split', divider = 'gray')
-    method = st.selectbox('Select the splitting method', ['Standard', 'KFold'], None, key = 'split_method', help = help_splitting_method, on_change=_widgets_on_change)
+    if st.session_state.learning_task == 'Classification':
+        method = st.selectbox('Select the splitting method', ['Standard', 'KFold', 'StratifiedKFold'], None, key = 'split_method', help = help_splitting_method, on_change=_widgets_on_change)
+    else:
+        method = st.selectbox('Select the splitting method', ['Standard'], None, key = 'split_method', help = help_splitting_method, on_change=_widgets_on_change)
     #warn for kfold and timeseries
     if st.session_state.split_method == 'KFold':
         col1, col2 = st.columns(2)
         with col1:
             st.radio('Number of splits', [5, 10], key = 'kfold_n_splits', horizontal=True)
             st.write(f'Learning will be performed with **{st.session_state.kfold_n_splits}Fold cross-validation**. A {100//st.session_state.kfold_n_splits}% chunk of data will be used for **testing**')
+        with col2:
+            st.checkbox('Shuffle dataset', st.session_state.learning_task != 'Regression', key = 'shuffle', help = 'Select indices at random')
+            st.slider('Validation split', 0.1, 0.3, 0.2, 0.05, key = 'validation_split', on_change=_widgets_on_change, help = 'The proportion of the training dataset that is kept for validating training (validation dataset)')
+
+    elif st.session_state.split_method == 'StratifiedKFold':
+        col1, col2 = st.columns(2)
+        with col1:
+            st.radio('Number of splits', [5, 10], key = 'kfold_n_splits', horizontal=True)
+            st.write(f'Learning will be performed with **{st.session_state.kfold_n_splits}Fold cross-validation**')
         with col2:
             st.checkbox('Shuffle dataset', st.session_state.learning_task != 'Regression', key = 'shuffle', help = 'Select indices at random')
             st.slider('Validation split', 0.1, 0.3, 0.2, 0.05, key = 'validation_split', on_change=_widgets_on_change, help = 'The proportion of the training dataset that is kept for validating training (validation dataset)')

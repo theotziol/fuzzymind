@@ -19,7 +19,7 @@ def transformation_widgets():
             if one_hot_column is not None:
                 #warn for numeric columns, but allow it for one hot encoding
                 if is_numeric_dtype(st.session_state.working_df[one_hot_column]):
-                    st.warning('You selected a numeric column. Verify that numeric values are Integers', icon = '⚠️')
+                    st.warning('You selected a numeric column. Verify it is not a continuous variable!', icon = '⚠️')
                 df = column_to_categorical(one_hot_column, st.session_state.working_df)
                 cl1, cl2 = st.columns(2)   
                 with cl1:

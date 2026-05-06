@@ -28,7 +28,7 @@ help_fcm_iter_timeseries = "The number of **FCM iterations**. In Neural-FCM time
 
 help_fcm_iter_regression = "The number of **FCM iterations** for performing inference. The value of the output concept at the last inference state will be used as the predicted value."
 
-help_batch_size = "The **batch size** defines the number of samples that will be propagated through the network. As **small** batch sizes require **less memory**, the maximum allowed batch size is set to 128 for better app efficiency."
+help_batch_size = "The **batch size** defines the number of samples that will be propagated through the network. **Small** batch sizes require **less memory**."
 
 help_epochs = "Epoch is a **complete forward pass** of **all the training data**. To avoid undertrained models, pass a high epoch number and use the early stopping algorithm."
 
@@ -100,11 +100,14 @@ def parameters_tab_neural_fcm():
         help_fcm_iter = help_fcm_iter_class
         disabled = False
         fcm_iter = 2
+        imbalance = True
     elif st.session_state.learning_task == "Regression":
+        imbalance = False
         if st.session_state.regression_split == "Standard split":
             disabled = False
             fcm_iter = 1
             help_fcm_iter = help_fcm_iter_regression
+            
         else:
             disabled = True
             fcm_iter = st.session_state.timestep_num
@@ -115,7 +118,10 @@ def parameters_tab_neural_fcm():
     ):
         col1, col2 = st.columns([0.4, 0.6])
         with col1:
-            st.write("**Neural-FCM Classifier parameters.**")
+            if st.session_state.learning_task=="Classification":
+                st.write("**Neural-FCM Classifier parameters.**")
+            else:
+                st.write("**Neural-FCM Regression parameters.**")
             st.slider(
                 "λ-slope sigmoid parameter",
                 1,
@@ -137,16 +143,26 @@ def parameters_tab_neural_fcm():
             )
             st.radio(
                 "Batch size",
-                [4, 16, 32, 64, 128],
+                [4, 16, 32, 64, 128, 256],
                 3,
                 key="batch_size",
                 help=help_batch_size,
                 horizontal=True,
             )
+            if imbalance:
+                st.toggle("Use Class Weights", False, key = "use_class_weights", help = "Provide class weights to handle imbalanced datasets")
+                if st.session_state.use_class_weights:
+                    columns = st.session_state.output_df.columns
+                    st.session_state.class_weights_dic = {}
+                    for i in range(len(columns)):
+                        key_name = f"Class_{columns[i]}_weight"
+                        st.slider(f"Class {columns[i]} weight", 0.5,10.0, 1.0, 0.1, key = key_name)
+                        st.session_state.class_weights_dic[i] = st.session_state[key_name]
+            
 
         with col2:
             st.write("**Other training parameters.**")
-            st.slider("Epochs", 20, 1000, 700, 5, key="epochs", help=help_epochs)
+            st.slider("Epochs", 20, 1200, 800, 5, key="epochs", help=help_epochs)
             st.checkbox(
                 "Early stopping",
                 True,
@@ -159,7 +175,7 @@ def parameters_tab_neural_fcm():
                     st.slider(
                         "Epochs patience",
                         10,
-                        40,
+                        50,
                         20,
                         1,
                         key="patience",
@@ -273,7 +289,7 @@ def learning():
 
     if st.session_state.learning_task == "Classification":
         if st.session_state.learning_algorithm == "Neural-FCM":
-            if st.session_state.split_method == "KFold":
+            if st.session_state.split_method == "KFold" or st.session_state.split_method == "StratifiedKFold":
                 learning_neuralfcm_classification_KFold()
             else:
                 learning_neuralfcm_classification_standard()
@@ -302,7 +318,7 @@ def results_widgets():
     """
     if st.session_state.training_finished:
         st.subheader("Results", divider="blue")
-        if st.session_state.split_method == "KFold":
+        if st.session_state.split_method == "KFold" or st.session_state.split_method == "StratifiedKFold":
             tab_learning_results_averg, tab_testing_results_averag = st.tabs(
                 ["🎓 Average Learning Results", "📑 Average Testing Results"]
             )
@@ -346,7 +362,7 @@ def results_widgets():
 
 #### classification learning methods
 def learning_neuralfcm_classification_standard():
-    with st.spinner("Learning has started. This may take a while..."):
+    with st.spinner("Learning has started. This may take a while... Please don't leave this page..."):
         x_train = st.session_state.input_df.iloc[
             : int(len(st.session_state.input_df) * st.session_state.split_ratio)
         ].to_numpy()
@@ -379,6 +395,13 @@ def learning_neuralfcm_classification_standard():
             ]
         else:
             callbacks = [time_callback]
+        if st.session_state.use_class_weights:
+            weights_dic = st.session_state.class_weights_dic
+            y_train_classes = np.argmax(y_train, axis=-1)
+            sample_weights = np.array([weights_dic[cls] for cls in y_train_classes])
+
+        else:
+            sample_weights = None
         history = nfcm.model.fit(
             x_train,
             train_y,
@@ -386,6 +409,7 @@ def learning_neuralfcm_classification_standard():
             epochs=st.session_state.epochs,
             validation_split=st.session_state.validation_split,
             callbacks=callbacks,
+            sample_weight=sample_weights
         )
         # predictions = nfcm.predict_classification(x_test)
         # nfcm.metrics_classification(y_test)
@@ -410,17 +434,23 @@ def learning_neuralfcm_classification_standard():
 
 
 def learning_neuralfcm_classification_KFold():
-    from sklearn.model_selection import KFold
+    from sklearn.model_selection import KFold, StratifiedKFold
 
     dic_kfold = {}
     with st.status(
-        "Learning has started. This may take a while...", expanded=True
+        "Learning has started. This may take a while... Please don't leave this page...", expanded=True
     ) as status:
-        kf = KFold(
-            n_splits=st.session_state.kfold_n_splits, shuffle=st.session_state.shuffle
-        )
+        if st.session_state.split_method == "Kfold":
+            kf = KFold(
+                n_splits=st.session_state.kfold_n_splits, shuffle=st.session_state.shuffle
+            )
+        else: #StratifiedKFold
+            kf = StratifiedKFold(
+                n_splits=st.session_state.kfold_n_splits, shuffle=st.session_state.shuffle
+            )
         fold = 0
-        for train_index, test_index in kf.split(st.session_state.input_df):
+        class_labels = np.argmax(st.session_state.output_df, axis=1)
+        for train_index, test_index in kf.split(st.session_state.input_df, class_labels):
             fold += 1
             st.write(f"Fold {fold}...")
             dic_kfold[fold] = {}
@@ -448,6 +478,14 @@ def learning_neuralfcm_classification_KFold():
                 ]
             else:
                 callbacks = [time_callback]
+
+            if st.session_state.use_class_weights:
+                weights_dic = st.session_state.class_weights_dic
+                y_train_classes = np.argmax(y_train, axis=-1)
+                sample_weights = np.array([weights_dic[cls] for cls in y_train_classes])
+
+            else:
+                sample_weights = None
             history = nfcm.model.fit(
                 x_train,
                 train_y,
@@ -455,6 +493,7 @@ def learning_neuralfcm_classification_KFold():
                 epochs=st.session_state.epochs,
                 validation_split=st.session_state.validation_split,
                 callbacks=callbacks,
+                sample_weight=sample_weights
             )
 
             nfcm.times = time_callback.times  # store the epoch times to the model
