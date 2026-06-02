@@ -80,7 +80,9 @@ To run this application inside a Docker container, follow these steps:
 
 ### 1. Install Docker
 
-Make sure you have Docker installed on your system. You can download and install Docker from [here](https://www.docker.com/get-started).
+Make sure you have Docker installed on your system. You can download and install Docker from [here](https://www.docker.com/get-started). 
+
+***Minimum Docker Desktop System [Requirements](https://docs.docker.com/desktop/setup/install/windows-install/#system-requirements)***
 
 
 ### 2. Build and Run the Docker Container
@@ -117,6 +119,7 @@ docker run -p 8501:8501 -v %cd%:/app fuzzymind
 docker run -p 8501:8501 -v ${PWD}:/app fuzzymind streamlit run Home.py --server.fileWatcherType=poll
 ```
 
+
 **For Linux / Mac:**
 
 ```sh
@@ -130,6 +133,19 @@ http://localhost:8501/
 ```
 
 ---
+
+***Note on GPU support. Currently dockerfile uses Python 3.10 Image, if you want to experiment with GPU support use the official TensorFlow Image, as below***
+
+***FROM tensorflow/tensorflow:latest-gpu***
+
+***Then***
+
+```sh
+docker run --gpus all -p 8501:8501 -v ${PWD}:/app fuzzymind
+```
+
+(Note for Windows users: You must run Docker Desktop with the WSL2 backend enabled to utilize GPU pass-through)
+
 
 ## Contributing
 
